@@ -12,7 +12,6 @@ type TableOffset   = Word64
 tableOffsetDefault = 0
 
 type HeaderVersion = Version
-headerVersionDefault = versionDefault
 
 type MaxTableEntries = Word32
 maxTableEntriesDefault = 0

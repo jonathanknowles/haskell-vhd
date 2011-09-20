@@ -1,3 +1,5 @@
+module FooterParser where
+
 import Control.Applicative
 import Data.Attoparsec
 import Data.Attoparsec.Binary

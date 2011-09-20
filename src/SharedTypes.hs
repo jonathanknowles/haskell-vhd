@@ -2,7 +2,6 @@ module SharedTypes where
 
 import Control.Exception
 import qualified Data.ByteString.Char8 as B
-import Data.UUID
 import Data.Word
 
 data Cookie  = Cookie B.ByteString deriving Show

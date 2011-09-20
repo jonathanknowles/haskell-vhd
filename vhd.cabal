@@ -1,0 +1,13 @@
+Name:                vhd
+Version:             0.1
+Author:              Jonathan Knowles
+Maintainer:          jonathan.knowles@eu.citrix.com
+Stability:           Experimental
+Category:            System
+Build-type:          Simple
+Cabal-version:       >=1.2
+
+Library
+    Build-depends:       attoparsec, attoparsec-binary, base > 4.0, bytestring
+    Exposed-modules:     FooterParser, FooterTypes, Footer, Header, HeaderTypes, SharedTypes
+    Hs-Source-Dirs:      src
