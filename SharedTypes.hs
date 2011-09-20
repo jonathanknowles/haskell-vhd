@@ -5,21 +5,19 @@ import qualified Data.ByteString.Char8 as B
 import Data.UUID
 import Data.Word
 
-newtype Cookie = Cookie B.ByteString deriving Show
-cookie value   = assert (B.length value <= 8) $ Cookie value
-cookieDefault  = cookie B.empty
+data Cookie  = Cookie B.ByteString deriving Show
+cookie value = assert (B.length value <= 8) $ Cookie value
 
 data Version      = Version VersionMajor VersionMinor deriving Show
 type VersionMajor = Word16
 type VersionMinor = Word16
-versionDefault    = Version 1 0
+version           = Version
 
-type CheckSum = Word32
+data CheckSum = CheckSum Word32 deriving Show
+checkSum      = CheckSum
 
-newtype UniqueId = UniqueId B.ByteString deriving Show
-uniqueId value   = assert (B.length value == 16) $ UniqueId value
-uniqueIdDefault  = uniqueId $ B.replicate 16 '\0'
+data UniqueId  = UniqueId B.ByteString deriving Show
+uniqueId value = assert (B.length value == 16) $ UniqueId value
 
-type TimeStamp   = Word32
-timeStampDefault = 0
-
+data TimeStamp = TimeStamp Word32 deriving Show
+timeStamp      = TimeStamp

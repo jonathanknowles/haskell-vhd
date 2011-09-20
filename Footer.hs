@@ -1,22 +1,22 @@
 module Footer where
 
-import qualified FooterTypes as F
-import qualified SharedTypes as S
+import FooterTypes
+import SharedTypes
 
 data Footer = Footer
-	{ cookie             :: S.Cookie
-	, isTemporaryDisk    :: F.IsTemporaryDisk
-	, formatVersion      :: F.FormatVersion
-	, dataOffset         :: F.DataOffset
-	, timeStamp          :: S.TimeStamp
-	, creatorApplication :: F.CreatorApplication
-	, creatorVersion     :: F.CreatorVersion
-	, creatorHostOs      :: F.CreatorHostOs
-	, originalSize       :: F.OriginalSize
-	, currentSize        :: F.CurrentSize
-	, diskGeometry       :: F.DiskGeometry
-	, diskType           :: F.DiskType
-	, checkSum           :: S.CheckSum
-	, uniqueId           :: S.UniqueId
-	, isSavedState       :: F.IsSavedState
+	{ cookie             :: Cookie
+	, isTemporaryDisk    :: IsTemporaryDisk
+	, formatVersion      :: Version
+	, dataOffset         :: DataOffset
+	, timeStamp          :: TimeStamp
+	, creatorApplication :: CreatorApplication
+	, creatorVersion     :: Version
+	, creatorHostOs      :: CreatorHostOs
+	, originalSize       :: Size
+	, currentSize        :: Size
+	, diskGeometry       :: DiskGeometry
+	, diskType           :: DiskType
+	, checkSum           :: CheckSum
+	, uniqueId           :: UniqueId
+	, isSavedState       :: IsSavedState
 	} deriving Show

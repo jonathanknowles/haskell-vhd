@@ -5,31 +5,27 @@ import qualified Data.ByteString.Char8 as B
 import Data.Word
 import SharedTypes
 
-type IsTemporaryDisk    = Bool
-isTemporaryDiskDefault  = False
+data IsTemporaryDisk = IsTemporaryDisk Bool deriving Show
+isTemporaryDisk      = IsTemporaryDisk
 
-type FormatVersion   = Version
-formatVersionDefault = versionDefault
+formatVersion  = Version
+creatorVersion = Version
 
-type DataOffset   = Word64
-dataOffsetDefault = 0xFFFFFFFF
+data DataOffset = DataOffset Word64 deriving Show
+dataOffset      = DataOffset
 
-newtype CreatorApplication = CreatorApplication B.ByteString deriving Show
-creatorApplication value   = assert (B.length value <= 4) $ CreatorApplication value
-creatorApplicationDefault  = creatorApplication B.empty
+data CreatorApplication  = CreatorApplication B.ByteString deriving Show
+creatorApplication value = assert (B.length value <= 4) $ CreatorApplication value
 
-type CreatorVersion = Version
-creatorVersionDefault  = versionDefault
+data CreatorHostOs     = CreatorHostOs Word32 deriving Show
+creatorHostOs          = CreatorHostOs
+creatorHostOsWindows   = creatorHostOs 0x5769326B
+creatorHostOsMacintosh = creatorHostOs 0x4D616320
 
-type CreatorHostOs     = Word32
-creatorHostOsWindows   = 0x5769326B
-creatorHostOsMacintosh = 0x4D616320
+data Size = Size Word64 deriving Show
 
-type OriginalSize   = Word64
-originalSizeDefault = 0
-
-type CurrentSize   = Word64
-currentSizeDefault = 0
+originalSize = Size
+currentSize  = Size
 
 data DiskGeometry = DiskGeometry
 	DiskGeometryCylinders
@@ -39,12 +35,15 @@ data DiskGeometry = DiskGeometry
 type DiskGeometryCylinders       = Word16
 type DiskGeometryHeads           = Word8
 type DiskGeometrySectorsPerTrack = Word8
+diskGeometry = DiskGeometry
 
 data DiskType
 	= DiskTypeFixed
 	| DiskTypeDynamic
 	| DiskTypeDifferencing
 	deriving Show
+diskType :: DiskType -> DiskType
+diskType = id
 
-type IsSavedState = Bool
-
+data IsSavedState = IsSavedState Bool deriving Show
+isSavedState = IsSavedState
