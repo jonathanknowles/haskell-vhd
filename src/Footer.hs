@@ -5,7 +5,7 @@ import SharedTypes
 
 data Footer = Footer
 	{ cookie             :: Cookie
-	, isTemporaryDisk    :: IsTemporaryDisk
+	, isTemporaryDisk    :: Bool
 	, formatVersion      :: Version
 	, dataOffset         :: DataOffset
 	, timeStamp          :: TimeStamp
@@ -18,5 +18,5 @@ data Footer = Footer
 	, diskType           :: DiskType
 	, checkSum           :: CheckSum
 	, uniqueId           :: UniqueId
-	, isSavedState       :: IsSavedState
+	, isSavedState       :: Bool
 	} deriving Show

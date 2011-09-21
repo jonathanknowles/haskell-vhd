@@ -5,8 +5,8 @@ import qualified Data.ByteString.Char8 as B
 import Data.Word
 import SharedTypes
 
-data IsTemporaryDisk = IsTemporaryDisk Bool deriving Show
-isTemporaryDisk      = IsTemporaryDisk
+isTemporaryDisk :: Bool -> Bool
+isTemporaryDisk = id
 
 formatVersion  = Version
 creatorVersion = Version
@@ -45,5 +45,5 @@ data DiskType
 diskType :: DiskType -> DiskType
 diskType = id
 
-data IsSavedState = IsSavedState Bool deriving Show
-isSavedState = IsSavedState
+isSavedState :: Bool -> Bool
+isSavedState = id
