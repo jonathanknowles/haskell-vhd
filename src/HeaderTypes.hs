@@ -6,38 +6,14 @@ import Data.Word
 
 import SharedTypes
 
-data Offset = Offset Word64 deriving Show
+type BlockSize  = Word32
+type EntryCount = Word32
 
-dataOffset  = Offset
-tableOffset = Offset
+newtype ParentLocatorEntry  = ParentLocatorEntry B.ByteString deriving Show
+newtype ParentUnicodeName   = ParentUnicodeName  B.ByteString deriving Show
 
-headerVersion = Version
+data ParentLocatorEntries = ParentLocatorEntries [ParentLocatorEntry] deriving Show
 
-data EntryCount = EntryCount Word32 deriving Show
-maxTableEntries = EntryCount
-
-data BlockSize = BlockSize Word32 deriving Show
-blockSize = BlockSize
-
-data ParentUnicodeName = ParentUnicodeName B.ByteString deriving Show
--- TODO: We should check the value is valid UTF-16
-parentUnicodeName value   = assert (B.length value <= 512) $ ParentUnicodeName value
-
-parentUniqueId = UniqueId
-
-parentTimeStamp = TimeStamp
-
-data ParentLocatorEntries = ParentLocatorEntries
-	{ parentLocatorEntry1 :: ParentLocatorEntry
-	, parentLocatorEntry2 :: ParentLocatorEntry
-	, parentLocatorEntry3 :: ParentLocatorEntry
-	, parentLocatorEntry4 :: ParentLocatorEntry
-	, parentLocatorEntry5 :: ParentLocatorEntry
-	, parentLocatorEntry6 :: ParentLocatorEntry
-	, parentLocatorEntry7 :: ParentLocatorEntry
-	, parentLocatorEntry8 :: ParentLocatorEntry
-	} deriving Show
-
-data ParentLocatorEntry  = ParentLocatorEntry B.ByteString deriving Show
-parentLocatorEntry value = assert (B.length value == 24) $ ParentLocatorEntry value
-
+parentLocatorEntries e = assert (  length e ==   8) $ ParentLocatorEntries e
+parentLocatorEntry   e = assert (B.length e ==  24) $ ParentLocatorEntry   e
+parentUnicodeName    n = assert (B.length n <= 512) $ ParentUnicodeName    n

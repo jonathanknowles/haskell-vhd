@@ -8,6 +8,6 @@ Build-type:          Simple
 Cabal-version:       >=1.2
 
 Library
-    Build-depends:       attoparsec, attoparsec-binary, base > 4.0, bytestring
-    Exposed-modules:     FooterParser, FooterTypes, Footer, HeaderParser, Header, HeaderTypes, SharedTypes
+    Build-depends:       base > 4.0, bytestring, cereal
+    Exposed-modules:     Disk
     Hs-Source-Dirs:      src
