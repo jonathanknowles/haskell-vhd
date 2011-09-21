@@ -34,22 +34,19 @@ footer = F.Footer
 
 paddingBytes = take 427
 
-isTemporaryDisk = FT.isTemporaryDisk . isTemporaryDiskFromWord
-isSavedState    = FT.isSavedState    . isSavedStateFromWord
-diskType        = FT.diskType        . diskTypeFromWord
+isTemporaryDisk = FT.isTemporaryDisk . readWord where
+	readWord n = n .&. 1 == 1
 
-isTemporaryDiskFromWord n = n .&. 1 == 1
+isSavedState = FT.isSavedState . readWord where
+	readWord 0 = False
+	readWord 1 = True
+	readWord _ = error "invalid saved state flag"
 
-diskTypeFromWord n = case n of
-	2 -> DiskTypeFixed
-	3 -> DiskTypeDynamic
-	4 -> DiskTypeDifferencing
-	_ -> error "invalid disk type"
-
-isSavedStateFromWord n = case n of
-	0 -> False
-	1 -> True
-	_ -> error "invalid saved state flag"
+diskType = FT.diskType . readWord where
+	readWord 2 = DiskTypeFixed
+	readWord 3 = DiskTypeDynamic
+	readWord 4 = DiskTypeDifferencing
+	readWord _ = error "invalid disk type"
 
 loadFromFile :: FilePath -> IO (Either String F.Footer)
 loadFromFile filePath = parseOnly footer <$> BS.readFile filePath
