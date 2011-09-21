@@ -23,6 +23,10 @@ data ParentUnicodeName = ParentUnicodeName B.ByteString deriving Show
 -- TODO: We should check the value is valid UTF-16
 parentUnicodeName value   = assert (B.length value <= 512) $ ParentUnicodeName value
 
+parentUniqueId = UniqueId
+
+parentTimeStamp = TimeStamp
+
 data ParentLocatorEntries = ParentLocatorEntries
 	{ parentLocatorEntry1 :: ParentLocatorEntry
 	, parentLocatorEntry2 :: ParentLocatorEntry

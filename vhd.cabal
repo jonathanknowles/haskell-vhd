@@ -9,5 +9,5 @@ Cabal-version:       >=1.2
 
 Library
     Build-depends:       attoparsec, attoparsec-binary, base > 4.0, bytestring
-    Exposed-modules:     FooterParser, FooterTypes, Footer, Header, HeaderTypes, SharedTypes
+    Exposed-modules:     FooterParser, FooterTypes, Footer, HeaderParser, Header, HeaderTypes, SharedTypes
     Hs-Source-Dirs:      src
