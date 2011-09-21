@@ -3,26 +3,25 @@ module HeaderTypes where
 import Control.Exception
 import qualified Data.ByteString.Char8 as B
 import Data.Word
+
 import SharedTypes
 
-type DataOffset   = Word64
-dataOffsetDefault = 0xFFFFFFFF
+data Offset = Offset Word64 deriving Show
 
-type TableOffset   = Word64
-tableOffsetDefault = 0
+dataOffset  = Offset
+tableOffset = Offset
 
-type HeaderVersion = Version
+headerVersion = Version
 
-type MaxTableEntries = Word32
-maxTableEntriesDefault = 0
+data EntryCount = EntryCount Word32 deriving Show
+maxTableEntries = EntryCount
 
-type BlockSize = Word32
-blockSizeDefault = 0x00200000
+data BlockSize = BlockSize Word32 deriving Show
+blockSize = BlockSize
 
-newtype ParentUnicodeName = ParentUnicodeName B.ByteString
+data ParentUnicodeName = ParentUnicodeName B.ByteString deriving Show
 -- TODO: We should check the value is valid UTF-16
 parentUnicodeName value   = assert (B.length value <= 512) $ ParentUnicodeName value
-parentUnicodeNameDefault  = parentUnicodeName B.empty
 
 data ParentLocatorEntries = ParentLocatorEntries
 	{ parentLocatorEntry1 :: ParentLocatorEntry
@@ -33,8 +32,8 @@ data ParentLocatorEntries = ParentLocatorEntries
 	, parentLocatorEntry6 :: ParentLocatorEntry
 	, parentLocatorEntry7 :: ParentLocatorEntry
 	, parentLocatorEntry8 :: ParentLocatorEntry
-	}
+	} deriving Show
 
-data ParentLocatorEntry  = ParentLocatorEntry B.ByteString
+data ParentLocatorEntry  = ParentLocatorEntry B.ByteString deriving Show
 parentLocatorEntry value = assert (B.length value == 24) $ ParentLocatorEntry value
 
