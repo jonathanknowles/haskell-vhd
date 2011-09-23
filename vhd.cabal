@@ -2,6 +2,9 @@ Name:                vhd
 Version:             0.1
 Author:              Jonathan Knowles
 Maintainer:          jonathan.knowles@eu.citrix.com
+Copyright:           Citrix Systems Inc.
+License:             BSD3
+License-file:        LICENCE
 Stability:           Experimental
 Category:            System
 Build-type:          Simple
