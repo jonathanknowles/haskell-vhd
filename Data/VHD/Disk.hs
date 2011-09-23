@@ -1,13 +1,12 @@
-module Disk where
+module Data.VHD.Disk where
 
 import Control.Applicative
 import Control.Exception
 import Control.Monad
-import Data.Serialize
 import qualified Data.ByteString.Lazy as BL
-
-import Header
-import Footer
+import Data.Serialize
+import Data.VHD.Header
+import Data.VHD.Footer
 
 data DynamicDisk = DynamicDisk
 	{ footer :: ! Footer

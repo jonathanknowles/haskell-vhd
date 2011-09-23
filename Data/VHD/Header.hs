@@ -1,20 +1,18 @@
-module Header where
+module Data.VHD.Header where
 
 import Control.Applicative
 import Control.Exception
 import Control.Monad
-import Data.Serialize
-import Data.Serialize.Get
-import Data.Serialize.Put
 import Data.Bits
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as BL
-
-import HeaderTypes hiding (parentLocatorEntry, parentLocatorEntries, parentUnicodeName)
-import SharedTypes hiding (cookie, uniqueId)
-
-import qualified SharedTypes as S
-import qualified HeaderTypes as H
+import Data.VHD.HeaderTypes hiding (parentLocatorEntry, parentLocatorEntries, parentUnicodeName)
+import Data.VHD.SharedTypes hiding (cookie, uniqueId)
+import qualified Data.VHD.HeaderTypes as H
+import qualified Data.VHD.SharedTypes as S
+import Data.Serialize
+import Data.Serialize.Get
+import Data.Serialize.Put
 
 data Header = Header
 	{ cookie               :: Cookie

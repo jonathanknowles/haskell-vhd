@@ -1,4 +1,4 @@
-module SharedTypes where
+module Data.VHD.SharedTypes where
 
 import Control.Exception
 import qualified Data.ByteString as B

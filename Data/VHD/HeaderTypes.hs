@@ -1,10 +1,9 @@
-module HeaderTypes where
+module Data.VHD.HeaderTypes where
 
 import Control.Exception
 import qualified Data.ByteString.Char8 as B
+import Data.VHD.SharedTypes
 import Data.Word
-
-import SharedTypes
 
 type BlockSize  = Word32
 type EntryCount = Word32

@@ -9,5 +9,4 @@ Cabal-version:       >=1.2
 
 Library
     Build-depends:       base > 4.0, bytestring, cereal
-    Exposed-modules:     Disk
-    Hs-Source-Dirs:      src
+    Exposed-modules:     Data.VHD.Disk

@@ -1,9 +1,9 @@
-module FooterTypes where
+module Data.VHD.FooterTypes where
 
 import Control.Exception
 import qualified Data.ByteString as B
+import Data.VHD.SharedTypes
 import Data.Word
-import SharedTypes
 
 newtype CreatorApplication = CreatorApplication B.ByteString deriving Show
 

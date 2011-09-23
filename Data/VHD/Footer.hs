@@ -1,19 +1,17 @@
-module Footer where
+module Data.VHD.Footer where
 
 import Control.Applicative
 import Control.Exception
-import Data.Serialize
-import Data.Serialize.Get
-import Data.Serialize.Put
 import Data.Bits
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as BL
-
-import FooterTypes hiding (creatorApplication)
-import SharedTypes hiding (cookie, uniqueId)
-
-import qualified SharedTypes as S
-import qualified FooterTypes as F
+import Data.Serialize
+import Data.Serialize.Get
+import Data.Serialize.Put
+import Data.VHD.FooterTypes hiding (creatorApplication)
+import Data.VHD.SharedTypes hiding (cookie, uniqueId)
+import qualified Data.VHD.FooterTypes as F
+import qualified Data.VHD.SharedTypes as S
 
 data Footer = Footer
 	{ cookie             :: Cookie
