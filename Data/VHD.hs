@@ -1,4 +1,4 @@
-module Data.VHD.Disk where
+module Data.VHD where
 
 import Control.Applicative
 import Control.Exception
@@ -8,19 +8,19 @@ import Data.Serialize
 import Data.VHD.Header
 import Data.VHD.Footer
 
-data DynamicDisk = DynamicDisk
+data DynamicDiskInfo = DynamicDiskInfo
 	{ footer :: ! Footer
 	, header :: ! Header
 	} deriving Show
 
-instance Serialize DynamicDisk where
-	get = DynamicDisk
+instance Serialize DynamicDiskInfo where
+	get = DynamicDiskInfo
 		<$> get
 		<*> get
 	put d = do
 		put $ footer d
 		put $ header d
 
-readFromFile :: FilePath -> IO (Either String DynamicDisk)
-readFromFile f = return . decodeLazy =<< BL.readFile f
+readDynamicDiskInfoFromFile :: FilePath -> IO (Either String DynamicDiskInfo)
+readDynamicDiskInfoFromFile f = return . decodeLazy =<< BL.readFile f
 
