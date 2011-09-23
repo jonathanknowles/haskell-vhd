@@ -14,21 +14,21 @@ import qualified Data.VHD.FooterTypes as F
 import qualified Data.VHD.SharedTypes as S
 
 data Footer = Footer
-	{ cookie             :: Cookie
-	, isTemporaryDisk    :: Bool
-	, formatVersion      :: Version
-	, dataOffset         :: Offset
-	, timeStamp          :: TimeStamp
-	, creatorApplication :: CreatorApplication
-	, creatorVersion     :: Version
-	, creatorHostOs      :: CreatorHostOs
-	, originalSize       :: Size
-	, currentSize        :: Size
-	, diskGeometry       :: DiskGeometry
-	, diskType           :: DiskType
-	, checkSum           :: CheckSum
-	, uniqueId           :: UniqueId
-	, isSavedState       :: Bool
+	{ footerCookie             :: Cookie
+	, footerIsTemporaryDisk    :: Bool
+	, footerFormatVersion      :: Version
+	, footerDataOffset         :: Offset
+	, footerTimeStamp          :: TimeStamp
+	, footerCreatorApplication :: CreatorApplication
+	, footerCreatorVersion     :: Version
+	, footerCreatorHostOs      :: CreatorHostOs
+	, footerOriginalSize       :: Size
+	, footerCurrentSize        :: Size
+	, footerDiskGeometry       :: DiskGeometry
+	, footerDiskType           :: DiskType
+	, footerCheckSum           :: CheckSum
+	, footerUniqueId           :: UniqueId
+	, footerIsSavedState       :: Bool
 	} deriving Show
 
 instance Serialize Footer where
@@ -50,21 +50,21 @@ instance Serialize Footer where
 		<*> getIsSavedState
 		<*  getPadding
 	put f = do
-		putCookie             $ cookie             f
-		putIsTemporaryDisk    $ isTemporaryDisk    f
-		putFormatVersion      $ formatVersion      f
-		putDataOffset         $ dataOffset         f
-		putTimeStamp          $ timeStamp          f
-		putCreatorApplication $ creatorApplication f
-		putCreatorVersion     $ creatorVersion     f
-		putCreatorHostOs      $ creatorHostOs      f
-		putOriginalSize       $ originalSize       f
-		putCurrentSize        $ currentSize        f
-		putDiskGeometry       $ diskGeometry       f
-		putDiskType           $ diskType           f
-		putCheckSum           $ checkSum           f
-		putUniqueId           $ uniqueId           f
-		putIsSavedState       $ isSavedState       f
+		putCookie             $ footerCookie             f
+		putIsTemporaryDisk    $ footerIsTemporaryDisk    f
+		putFormatVersion      $ footerFormatVersion      f
+		putDataOffset         $ footerDataOffset         f
+		putTimeStamp          $ footerTimeStamp          f
+		putCreatorApplication $ footerCreatorApplication f
+		putCreatorVersion     $ footerCreatorVersion     f
+		putCreatorHostOs      $ footerCreatorHostOs      f
+		putOriginalSize       $ footerOriginalSize       f
+		putCurrentSize        $ footerCurrentSize        f
+		putDiskGeometry       $ footerDiskGeometry       f
+		putDiskType           $ footerDiskType           f
+		putCheckSum           $ footerCheckSum           f
+		putUniqueId           $ footerUniqueId           f
+		putIsSavedState       $ footerIsSavedState       f
 		putPadding
 
 getPadding = getByteString 427

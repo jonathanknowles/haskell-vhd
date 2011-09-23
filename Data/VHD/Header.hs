@@ -15,17 +15,17 @@ import Data.Serialize.Get
 import Data.Serialize.Put
 
 data Header = Header
-	{ cookie               :: Cookie
-	, dataOffset           :: Offset
-	, tableOffset          :: Offset
-	, headerVersion        :: Version
-	, maxTableEntries      :: EntryCount
-	, blockSize            :: BlockSize
-	, checkSum             :: CheckSum
-	, parentUniqueId       :: UniqueId
-	, parentTimeStamp      :: TimeStamp
-	, parentUnicodeName    :: ParentUnicodeName
-	, parentLocatorEntries :: ParentLocatorEntries
+	{ headerCookie               :: Cookie
+	, headerDataOffset           :: Offset
+	, headerTableOffset          :: Offset
+	, headerVersion              :: Version
+	, headerMaxTableEntries      :: EntryCount
+	, headerBlockSize            :: BlockSize
+	, headerCheckSum             :: CheckSum
+	, headerParentUniqueId       :: UniqueId
+	, headerParentTimeStamp      :: TimeStamp
+	, headerParentUnicodeName    :: ParentUnicodeName
+	, headerParentLocatorEntries :: ParentLocatorEntries
 	} deriving Show
 
 instance Serialize Header where
@@ -33,7 +33,7 @@ instance Serialize Header where
 		<$> getCookie
 		<*> getDataOffset
 		<*> getTableOffset
-		<*> getHeaderVersion
+		<*> getVersion
 		<*> getMaxTableEntries
 		<*> getBlockSize
 		<*> getCheckSum
@@ -43,17 +43,17 @@ instance Serialize Header where
 		<*> getParentLocatorEntries
 		<*  getPadding
 	put h = do
-		putCookie               $ cookie               h
-		putDataOffset           $ dataOffset           h
-		putTableOffset          $ tableOffset          h
-		putHeaderVersion        $ headerVersion        h
-		putMaxTableEntries      $ maxTableEntries      h
-		putBlockSize            $ blockSize            h
-		putCheckSum             $ checkSum             h
-		putParentUniqueId       $ parentUniqueId       h
-		putParentTimeStamp      $ parentTimeStamp      h
-		putParentUnicodeName    $ parentUnicodeName    h
-		putParentLocatorEntries $ parentLocatorEntries h
+		putCookie               $ headerCookie               h
+		putDataOffset           $ headerDataOffset           h
+		putTableOffset          $ headerTableOffset          h
+		putVersion              $ headerVersion              h
+		putMaxTableEntries      $ headerMaxTableEntries      h
+		putBlockSize            $ headerBlockSize            h
+		putCheckSum             $ headerCheckSum             h
+		putParentUniqueId       $ headerParentUniqueId       h
+		putParentTimeStamp      $ headerParentTimeStamp      h
+		putParentUnicodeName    $ headerParentUnicodeName    h
+		putParentLocatorEntries $ headerParentLocatorEntries h
 		putPadding
 
 getPadding = getByteString 427
@@ -89,9 +89,6 @@ putParentUniqueId (UniqueId i) = putByteString i
 
 getVersion = Version <$> getWord16be <*> getWord16be
 putVersion (Version major minor) = putWord16be major >> putWord16be minor
-
-getHeaderVersion = getVersion
-putHeaderVersion = putVersion
 
 getParentUnicodeName = H.parentUnicodeName <$> getPaddedByteString 512
 putParentUnicodeName (ParentUnicodeName c) = putPaddedByteString 512 c
