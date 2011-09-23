@@ -5,8 +5,8 @@ import Control.Exception
 import Control.Monad
 import qualified Data.ByteString.Lazy as BL
 import Data.Serialize
-import Data.VHD.Header
-import Data.VHD.Footer
+import Data.VHD.Serialize
+import Data.VHD.Types
 
 data DynamicDiskInfo = DynamicDiskInfo
 	{ footer :: ! Footer

@@ -1,35 +1,43 @@
-module Data.VHD.Footer where
+module Data.VHD.Serialize where
 
 import Control.Applicative
 import Control.Exception
+import Control.Monad
 import Data.Bits
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as BL
+import Data.VHD.Types
 import Data.Serialize
 import Data.Serialize.Get
 import Data.Serialize.Put
-import Data.VHD.FooterTypes hiding (creatorApplication)
-import Data.VHD.SharedTypes hiding (cookie, uniqueId)
-import qualified Data.VHD.FooterTypes as F
-import qualified Data.VHD.SharedTypes as S
 
-data Footer = Footer
-	{ footerCookie             :: Cookie
-	, footerIsTemporaryDisk    :: Bool
-	, footerFormatVersion      :: Version
-	, footerDataOffset         :: Offset
-	, footerTimeStamp          :: TimeStamp
-	, footerCreatorApplication :: CreatorApplication
-	, footerCreatorVersion     :: Version
-	, footerCreatorHostOs      :: CreatorHostOs
-	, footerOriginalSize       :: Size
-	, footerCurrentSize        :: Size
-	, footerDiskGeometry       :: DiskGeometry
-	, footerDiskType           :: DiskType
-	, footerCheckSum           :: CheckSum
-	, footerUniqueId           :: UniqueId
-	, footerIsSavedState       :: Bool
-	} deriving Show
+instance Serialize Header where
+	get = Header
+		<$> getCookie
+		<*> getDataOffset
+		<*> getTableOffset
+		<*> getVersion
+		<*> getMaxTableEntries
+		<*> getBlockSize
+		<*> getCheckSum
+		<*> getParentUniqueId
+		<*> getParentTimeStamp
+		<*> getParentUnicodeName
+		<*> getParentLocatorEntries
+		<*  getHeaderPadding
+	put h = do
+		putCookie               $ headerCookie               h
+		putDataOffset           $ headerDataOffset           h
+		putTableOffset          $ headerTableOffset          h
+		putVersion              $ headerVersion              h
+		putMaxTableEntries      $ headerMaxTableEntries      h
+		putBlockSize            $ headerBlockSize            h
+		putCheckSum             $ headerCheckSum             h
+		putParentUniqueId       $ headerParentUniqueId       h
+		putParentTimeStamp      $ headerParentTimeStamp      h
+		putParentUnicodeName    $ headerParentUnicodeName    h
+		putParentLocatorEntries $ headerParentLocatorEntries h
+		putHeaderPadding
 
 instance Serialize Footer where
 	get = Footer
@@ -48,7 +56,7 @@ instance Serialize Footer where
 		<*> getCheckSum
 		<*> getUniqueId
 		<*> getIsSavedState
-		<*  getPadding
+		<*  getFooterPadding
 	put f = do
 		putCookie             $ footerCookie             f
 		putIsTemporaryDisk    $ footerIsTemporaryDisk    f
@@ -65,23 +73,16 @@ instance Serialize Footer where
 		putCheckSum           $ footerCheckSum           f
 		putUniqueId           $ footerUniqueId           f
 		putIsSavedState       $ footerIsSavedState       f
-		putPadding
+		putFooterPadding
 
-getPadding = getByteString 427
-putPadding = putByteString $ B.replicate 427 0
+footerPaddingLength = 427
+getFooterPadding = getByteString footerPaddingLength
+putFooterPadding = putByteString $ B.replicate footerPaddingLength 0
 
-getCheckSum     = getWord32be
-putCheckSum     = putWord32be
-getCurrentSize  = getWord64be
-putCurrentSize  = putWord64be
-getDataOffset   = getWord64be
-putDataOffset   = putWord64be
-getOriginalSize = getWord64be
-putOriginalSize = putWord64be
-getTimeStamp    = getWord32be
-putTimeStamp    = putWord32be
+headerPaddingLength = 256
+getHeaderPadding = getByteString headerPaddingLength
+putHeaderPadding = putByteString $ B.replicate headerPaddingLength 0
 
---duplicated
 getPaddedByteString length = removePadding <$> getByteString length where
 	removePadding = B.takeWhile (> 0)
 putPaddedByteString length string = putByteString paddedString where
@@ -89,11 +90,29 @@ putPaddedByteString length string = putByteString paddedString where
 	paddingLength = length - B.length string
 	padding       = B.replicate paddingLength 0
 
---duplicated
-getCookie = S.cookie <$> getPaddedByteString 8
+getCookie = cookie <$> getPaddedByteString 8
 putCookie (Cookie c) = putPaddedByteString 8 c
 
-getCreatorApplication = F.creatorApplication <$> getPaddedByteString 4
+getBlockSize       = getWord32be
+putBlockSize       = putWord32be
+getCheckSum        = getWord32be
+putCheckSum        = putWord32be
+getCurrentSize     = getWord64be
+putCurrentSize     = putWord64be
+getDataOffset      = getWord64be
+putDataOffset      = putWord64be
+getMaxTableEntries = getWord32be
+putMaxTableEntries = putWord32be
+getOriginalSize    = getWord64be
+putOriginalSize    = putWord64be
+getParentTimeStamp = getWord32be
+putParentTimeStamp = putWord32be
+getTableOffset     = getWord64be
+putTableOffset     = putWord64be
+getTimeStamp       = getWord32be
+putTimeStamp       = putWord32be
+
+getCreatorApplication = creatorApplication <$> getPaddedByteString 4
 putCreatorApplication (CreatorApplication c) = putPaddedByteString 4 c
 
 getCreatorHostOs = convert <$> getWord32be where
@@ -127,6 +146,9 @@ putIsSavedState i = putWord8 (if i then 1 else 0)
 getUniqueId = UniqueId <$> getByteString 16
 putUniqueId (UniqueId i) = putByteString i
 
+getParentUniqueId = getUniqueId
+putParentUniqueId = putUniqueId
+
 getVersion = Version <$> getWord16be <*> getWord16be
 putVersion (Version major minor) = putWord16be major >> putWord16be minor
 
@@ -134,4 +156,13 @@ getCreatorVersion = getVersion
 putCreatorVersion = putVersion
 getFormatVersion  = getVersion
 putFormatVersion  = putVersion
+
+getParentUnicodeName = parentUnicodeName <$> getPaddedByteString 512
+putParentUnicodeName (ParentUnicodeName c) = putPaddedByteString 512 c
+
+getParentLocatorEntry = parentLocatorEntry <$> getByteString 24
+putParentLocatorEntry (ParentLocatorEntry e) = putByteString e
+
+getParentLocatorEntries = parentLocatorEntries <$> replicateM 8 getParentLocatorEntry
+putParentLocatorEntries (ParentLocatorEntries es) = mapM_ putParentLocatorEntry es
 
