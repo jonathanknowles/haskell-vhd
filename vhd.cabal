@@ -9,7 +9,7 @@ Stability:           Experimental
 Category:            System
 Build-type:          Simple
 Homepage:            https://github.com/jonathanknowles/hs-vhd
-Cabal-version:       >=1.2
+Cabal-version:       >=1.6
 Data-files:          README
 
 Library
@@ -18,3 +18,7 @@ Library
                    , cereal
   Exposed-modules:   Data.VHD
 
+
+source-repository head
+  type:     git
+  location: git://github.com/jonathanknowles/hs-vhd
