@@ -11,7 +11,7 @@ import Data.VHD.Types
 data DynamicDiskInfo = DynamicDiskInfo
 	{ footer :: ! Footer
 	, header :: ! Header
-	} deriving Show
+	} deriving (Show,Eq)
 
 instance Serialize DynamicDiskInfo where
 	get = DynamicDiskInfo
