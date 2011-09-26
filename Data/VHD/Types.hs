@@ -73,10 +73,10 @@ newtype UniqueId             = UniqueId           B.ByteString deriving (Show,Eq
 
 newtype ParentLocatorEntries = ParentLocatorEntries [ParentLocatorEntry] deriving (Show,Eq)
 
-cookie               c = assert (B.length c <=   8) $ Cookie               c
-creatorApplication   a = assert (B.length a <=   4) $ CreatorApplication   a
+cookie               c = assert (B.length c ==   8) $ Cookie               c
+creatorApplication   a = assert (B.length a ==   4) $ CreatorApplication   a
 parentLocatorEntries e = assert (  length e ==   8) $ ParentLocatorEntries e
 parentLocatorEntry   e = assert (B.length e ==  24) $ ParentLocatorEntry   e
-parentUnicodeName    n = assert (B.length n <= 512) $ ParentUnicodeName    n
+parentUnicodeName    n = assert (B.length n == 512) $ ParentUnicodeName    n
 uniqueId             i = assert (B.length i ==  16) $ UniqueId             i
 
