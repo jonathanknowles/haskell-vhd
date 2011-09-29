@@ -8,6 +8,7 @@ import qualified Data.ByteString as B
 import Data.Serialize
 import Data.VHD.Serialize
 import Data.VHD.Types
+import Data.VHD.Utils
 import Data.Bits
 import Data.Word
 import qualified Data.Vector.Unboxed as V
@@ -55,9 +56,5 @@ readBat handle ddinfo = do
 		maxEntries = headerMaxTableEntries hdr
 		batSize    = maxEntries * 4 `roundUpToModulo` sectorLength
 
-		roundUpToModulo n m
-			| n `mod` m == 0 = n
-			| otherwise      = n + m - (n `mod` m)
-		divRoundUp a b = let (d,m) = a `divMod` b in d + if m > 0 then 1 else 0
 
 sectorLength = 512
