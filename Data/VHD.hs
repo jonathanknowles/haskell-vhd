@@ -11,7 +11,7 @@ import Data.VHD.Types
 import Data.Bits
 import Data.Word
 import qualified Data.Vector.Unboxed as V
-import qualified Data.Vector.Unboxed.Mutable as V
+import qualified Data.Vector.Unboxed.Mutable as VM
 
 import System.IO
 
@@ -35,11 +35,11 @@ readBat :: Handle -> DynamicDiskInfo -> IO Bat
 readBat handle ddinfo = do
 	hSeek handle AbsoluteSeek $ fromIntegral (headerTableOffset hdr)
 	bs <- B.hGet handle (fromIntegral batSize)
-	return $ Bat $ V.create (V.new (fromIntegral maxEntries) >>= \v -> fill v 0 bs)
+	return $ Bat $ V.create (VM.new (fromIntegral maxEntries) >>= \v -> fill v 0 bs)
 	where
 		fill v i bs
 			| i == maxEntries = return v
-			| otherwise       = V.write v (fromIntegral i) (be32 b1) >> fill v (i+1) b2
+			| otherwise       = VM.write v (fromIntegral i) (be32 b1) >> fill v (i+1) b2
 				where (b1,b2) = B.splitAt 4 bs
 
 		be32 :: B.ByteString -> Word32
