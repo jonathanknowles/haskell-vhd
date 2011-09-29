@@ -29,6 +29,9 @@ instance Serialize DynamicDiskInfo where
 		put $ footer d
 		put $ header d
 
+getBat maxEntries = Bat <$> V.replicateM maxEntries getWord32be
+putBat (Bat ents) = V.mapM_ putWord32be ents
+
 readDynamicDiskInfoFromFile :: FilePath -> IO (Either String DynamicDiskInfo)
 readDynamicDiskInfoFromFile f = return . decodeLazy =<< BL.readFile f
 
