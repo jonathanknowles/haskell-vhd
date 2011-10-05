@@ -1,6 +1,6 @@
 module Data.VHD.Block
 	( BlockPtr
-	, Sector
+	, SectorPtr
 	, withBlock
 	, writeBlock
 	, bitmapSizeOfBlock
@@ -32,7 +32,7 @@ import System.IO.MMap
 
 data BlockPtr = BlockPtr BlockSize (Ptr Word8)
 
-data Sector = Sector (Ptr Word8)
+data SectorPtr = SectorPtr (Ptr Word8)
 
 sectorLength :: Word32
 sectorLength = 512
