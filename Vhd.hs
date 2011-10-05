@@ -3,6 +3,7 @@ import Data.VHD.Types
 import Data.VHD.Block
 import Data.VHD.Context
 import Data.VHD.Bat
+import Data.VHD.CheckSum
 import System.Environment (getArgs)
 import System.IO
 import Text.Printf
@@ -26,14 +27,16 @@ readVhd file = withVhdContext file $ \ctx -> do
 		, ("version          ", show $ headerVersion hdr)
 		, ("max-table-entries", show $ headerMaxTableEntries hdr)
 		, ("block-size       ", showBlockSize $ headerBlockSize hdr)
-		, ("checksum         ", printf "%08x" $ headerCheckSum hdr)
+		, ("header-checksum  ", printf "%08x (%s)" (headerCheckSum hdr)
+		                                           (if verifyHeaderChecksum hdr then "valid" else "invalid"))
 		]
 	mapM_ (\(f,s) -> putStrLn (f ++ " : " ++ s))
 		[ ("disk-geometry    ", show $ footerDiskGeometry ftr)
 		, ("original-size    ", showBlockSize $ footerOriginalSize ftr)
 		, ("current-size     ", showBlockSize $ footerOriginalSize ftr)
 		, ("type             ", show $ footerDiskType ftr)
-		, ("checksum         ", printf "%08x" $ footerCheckSum ftr)
+		, ("footer-checksum  ", printf "%08x (%s)" (footerCheckSum ftr)
+		                                           (if verifyFooterChecksum ftr then "valid" else "invalid"))
 		]
 	allocated <- newIORef 0
 	batIterate (ctxBatPtr ctx) (fromIntegral $ headerMaxTableEntries hdr) $ \i n -> do
