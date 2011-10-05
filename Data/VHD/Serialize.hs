@@ -80,18 +80,11 @@ getFooterPadding = getByteString footerPaddingLength
 putFooterPadding = putByteString $ B.replicate footerPaddingLength 0
 
 headerPaddingLength = 256
-getHeaderPadding = getByteString headerPaddingLength
+getHeaderPadding = skip headerPaddingLength
 putHeaderPadding = putByteString $ B.replicate headerPaddingLength 0
 
-getPaddedByteString length = removePadding <$> getByteString length where
-	removePadding = B.takeWhile (> 0)
-putPaddedByteString length string = putByteString paddedString where
-	paddedString  = assert (paddingLength > 0) $ B.append string padding
-	paddingLength = length - B.length string
-	padding       = B.replicate paddingLength 0
-
-getCookie = cookie <$> getPaddedByteString 8
-putCookie (Cookie c) = putPaddedByteString 8 c
+getCookie = cookie <$> getByteString 8
+putCookie (Cookie c) = putByteString c
 
 getBlockSize       = getWord32be
 putBlockSize       = putWord32be
@@ -112,8 +105,8 @@ putTableOffset     = putWord64be
 getTimeStamp       = getWord32be
 putTimeStamp       = putWord32be
 
-getCreatorApplication = creatorApplication <$> getPaddedByteString 4
-putCreatorApplication (CreatorApplication c) = putPaddedByteString 4 c
+getCreatorApplication = creatorApplication <$> getByteString 4
+putCreatorApplication (CreatorApplication c) = putByteString c
 
 getCreatorHostOs = convert <$> getWord32be where
 	convert 0x4D616320 = CreatorHostOsMacintosh
@@ -157,8 +150,8 @@ putCreatorVersion = putVersion
 getFormatVersion  = getVersion
 putFormatVersion  = putVersion
 
-getParentUnicodeName = parentUnicodeName <$> getPaddedByteString 512
-putParentUnicodeName (ParentUnicodeName c) = putPaddedByteString 512 c
+getParentUnicodeName = parentUnicodeName <$> getByteString 512
+putParentUnicodeName (ParentUnicodeName c) = putByteString c
 
 getParentLocatorEntry = parentLocatorEntry <$> getByteString 24
 putParentLocatorEntry (ParentLocatorEntry e) = putByteString e

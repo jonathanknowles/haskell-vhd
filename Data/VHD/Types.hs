@@ -16,7 +16,7 @@ data Header = Header
 	, headerParentTimeStamp      :: TimeStamp
 	, headerParentUnicodeName    :: ParentUnicodeName
 	, headerParentLocatorEntries :: ParentLocatorEntries
-	} deriving Show
+	} deriving (Show,Eq)
 
 data Footer = Footer
 	{ footerCookie             :: Cookie
@@ -34,7 +34,7 @@ data Footer = Footer
 	, footerCheckSum           :: CheckSum
 	, footerUniqueId           :: UniqueId
 	, footerIsSavedState       :: Bool
-	} deriving Show
+	} deriving (Show,Eq)
 
 type BlockSize                   = Word32
 type DiskGeometryCylinders       = Word16
@@ -46,37 +46,37 @@ type Offset                      = Word64
 type Size                        = Word64
 type TimeStamp                   = Word32
 
-data Version      = Version VersionMajor VersionMinor deriving Show
+data Version      = Version VersionMajor VersionMinor deriving (Show,Eq)
 type VersionMajor = Word16
 type VersionMinor = Word16
 
 data CreatorHostOs
 	= CreatorHostOsUnknown
 	| CreatorHostOsWindows
-	| CreatorHostOsMacintosh deriving Show
+	| CreatorHostOsMacintosh deriving (Show,Eq)
 
 data DiskGeometry = DiskGeometry
 	DiskGeometryCylinders
 	DiskGeometryHeads
-	DiskGeometrySectorsPerTrack deriving Show
+	DiskGeometrySectorsPerTrack deriving (Show,Eq)
 
 data DiskType
 	= DiskTypeFixed
 	| DiskTypeDynamic
-	| DiskTypeDifferencing deriving Show
+	| DiskTypeDifferencing deriving (Show,Eq)
 
-newtype Cookie               = Cookie             B.ByteString deriving Show
-newtype CreatorApplication   = CreatorApplication B.ByteString deriving Show
-newtype ParentLocatorEntry   = ParentLocatorEntry B.ByteString deriving Show
-newtype ParentUnicodeName    = ParentUnicodeName  B.ByteString deriving Show
-newtype UniqueId             = UniqueId           B.ByteString deriving Show
+newtype Cookie               = Cookie             B.ByteString deriving (Show,Eq)
+newtype CreatorApplication   = CreatorApplication B.ByteString deriving (Show,Eq)
+newtype ParentLocatorEntry   = ParentLocatorEntry B.ByteString deriving (Show,Eq)
+newtype ParentUnicodeName    = ParentUnicodeName  B.ByteString deriving (Show,Eq)
+newtype UniqueId             = UniqueId           B.ByteString deriving (Show,Eq)
 
-newtype ParentLocatorEntries = ParentLocatorEntries [ParentLocatorEntry] deriving Show
+newtype ParentLocatorEntries = ParentLocatorEntries [ParentLocatorEntry] deriving (Show,Eq)
 
-cookie               c = assert (B.length c <=   8) $ Cookie               c
-creatorApplication   a = assert (B.length a <=   4) $ CreatorApplication   a
+cookie               c = assert (B.length c ==   8) $ Cookie               c
+creatorApplication   a = assert (B.length a ==   4) $ CreatorApplication   a
 parentLocatorEntries e = assert (  length e ==   8) $ ParentLocatorEntries e
 parentLocatorEntry   e = assert (B.length e ==  24) $ ParentLocatorEntry   e
-parentUnicodeName    n = assert (B.length n <= 512) $ ParentUnicodeName    n
+parentUnicodeName    n = assert (B.length n == 512) $ ParentUnicodeName    n
 uniqueId             i = assert (B.length i ==  16) $ UniqueId             i
 
