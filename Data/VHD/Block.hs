@@ -1,7 +1,7 @@
 module Data.VHD.Block
 	( Block
 	, Sector
-	, withBlock 
+	, withBlock
 	, writeBlock
 	, bitmapSizeOfBlock
 	, bitmapOfBlock
@@ -72,7 +72,7 @@ writeBlock block bs offset = do
 		dataPtr = dataOfBlock block
 		bsector = fromIntegral offset `div` sectorLength
 		esector = fromIntegral (offset + B.length bs) `div` sectorLength
-	
+
 data Bitmap = Bitmap (Ptr Word8)
 
 bitmapGet :: Bitmap -> Int -> IO Bool
