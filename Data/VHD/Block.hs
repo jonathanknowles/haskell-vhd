@@ -31,7 +31,7 @@ import Control.Monad
 import System.IO.MMap
 
 data BlockPtr = BlockPtr BlockSize (Ptr Word8)
-
+data BitmapPtr = BitmapPtr (Ptr Word8)
 data SectorPtr = SectorPtr (Ptr Word8)
 
 sectorLength :: Word32
@@ -60,7 +60,6 @@ withBlock file bs sectorOff f = mmapWithFilePtr file ReadWrite (Just offsetSize)
 		nbSector       = (bs `divRoundUp` sectorLength)
 		bitmapSize     = (nbSector `divRoundUp` 8) `roundUpToModulo` sectorLength
 
-
 writeBlock :: BlockPtr -> ByteString -> Int -> IO ()
 writeBlock block bs offset = do
 	-- sectors need to be prepared for differential disk if the bitmap was clear before,
@@ -72,8 +71,6 @@ writeBlock block bs offset = do
 		dataPtr = dataOfBlock block
 		bsector = fromIntegral offset `div` sectorLength
 		esector = fromIntegral (offset + B.length bs) `div` sectorLength
-
-data BitmapPtr = BitmapPtr (Ptr Word8)
 
 bitmapGet :: BitmapPtr -> Int -> IO Bool
 bitmapGet (BitmapPtr ptr) n = test `fmap` peekByteOff ptr offset
