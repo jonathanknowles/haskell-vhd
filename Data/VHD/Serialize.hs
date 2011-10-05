@@ -145,7 +145,7 @@ getDiskGeometry = DiskGeometry <$> getWord16be <*> getWord8 <*> getWord8
 putDiskGeometry (DiskGeometry c h s) = putWord16be c >> putWord8 h >> putWord8 s
 
 getIsTemporaryDisk = (\n -> n .&. 1 == 1) <$> getWord32be
-putIsTemporaryDisk i = putWord32be (if i then 1 else 0)
+putIsTemporaryDisk i = putWord32be ((if i then 1 else 0) .|. 0x2)
 
 getIsSavedState = (== 1) <$> getWord8
 putIsSavedState i = putWord8 (if i then 1 else 0)
