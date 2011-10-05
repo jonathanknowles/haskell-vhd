@@ -67,7 +67,7 @@ create filePath bs virtualSize =
 			}
 		header = Header
 			{ headerCookie               = cookie "cxsparse"
-			, headerDataOffset           = 0xffffffff
+			, headerDataOffset           = 0xffffffffffffffff
 			, headerTableOffset          = footerSize + headerSize
 			, headerVersion              = Version 1 0
 			, headerMaxTableEntries      = maxTableEntries
