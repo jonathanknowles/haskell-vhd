@@ -43,7 +43,7 @@ bitmapSizeOfBlock blockSize = fromIntegral ((nbSector `divRoundUp` 8) `roundUpTo
 	where nbSector = blockSize `divRoundUp` sectorLength
 
 -- | get a bitmap type out of a block type.
--- the bitmap happens to be at the beggining of the block.
+-- the bitmap happens to be at the beginning of the block.
 bitmapOfBlock :: Block -> Bitmap
 bitmapOfBlock (Block _ ptr) = Bitmap ptr
 
