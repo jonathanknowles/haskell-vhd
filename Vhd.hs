@@ -68,7 +68,6 @@ fromRaw fileRaw fileVhd size = do
 
 main = do
 	args <- getArgs
-	let file = args !! 0
 	case args of
 		["create", file] -> create file (2 * 1024 * 1024) (1 * 1024 * 1024 * 1024)
 		["read", file]   -> readVhd file
