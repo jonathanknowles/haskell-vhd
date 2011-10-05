@@ -6,7 +6,7 @@ module Data.VHD.Block
 	, bitmapSizeOfBlock
 	, bitmapOfBlock
 	, sectorLength
-	, Bitmap(..)
+	, BitmapPtr (..)
 	, bitmapGet
 	, bitmapSet
 	, bitmapClear
@@ -44,8 +44,8 @@ bitmapSizeOfBlock blockSize = fromIntegral ((nbSector `divRoundUp` 8) `roundUpTo
 
 -- | get a bitmap type out of a block type.
 -- the bitmap happens to be at the beginning of the block.
-bitmapOfBlock :: BlockPtr -> Bitmap
-bitmapOfBlock (BlockPtr _ ptr) = Bitmap ptr
+bitmapOfBlock :: BlockPtr -> BitmapPtr
+bitmapOfBlock (BlockPtr _ ptr) = BitmapPtr ptr
 
 dataOfBlock :: BlockPtr -> Ptr Word8
 dataOfBlock (BlockPtr bs ptr) = ptr `plusPtr` (bitmapSizeOfBlock bs)
@@ -73,30 +73,30 @@ writeBlock block bs offset = do
 		bsector = fromIntegral offset `div` sectorLength
 		esector = fromIntegral (offset + B.length bs) `div` sectorLength
 
-data Bitmap = Bitmap (Ptr Word8)
+data BitmapPtr = BitmapPtr (Ptr Word8)
 
-bitmapGet :: Bitmap -> Int -> IO Bool
-bitmapGet (Bitmap ptr) n = test `fmap` peekByteOff ptr offset
+bitmapGet :: BitmapPtr -> Int -> IO Bool
+bitmapGet (BitmapPtr ptr) n = test `fmap` peekByteOff ptr offset
 	where
 		test :: Word8 -> Bool
 		test = flip testBit (7-bit)
 		(offset, bit) = n `divMod` 8
 
-bitmapModify :: Bitmap -> Int -> (Int -> Word8 -> Word8) -> IO ()
-bitmapModify (Bitmap bptr) n f = peek ptr >>= poke ptr . f (7-bit)
+bitmapModify :: BitmapPtr -> Int -> (Int -> Word8 -> Word8) -> IO ()
+bitmapModify (BitmapPtr bptr) n f = peek ptr >>= poke ptr . f (7-bit)
 	where
 		ptr = bptr `plusPtr` offset
 		(offset, bit) = n `divMod` 8
 
-bitmapSet :: Bitmap -> Int -> IO ()
+bitmapSet :: BitmapPtr -> Int -> IO ()
 bitmapSet bitmap n = bitmapModify bitmap n (flip setBit)
 
 -- FIXME use a faster way to set multiple bits when time permits
-bitmapSetRange :: Bitmap -> Int -> Int -> IO ()
+bitmapSetRange :: BitmapPtr -> Int -> Int -> IO ()
 bitmapSetRange bitmap s e
 	| s == e    = bitmapSet bitmap s
 	| s < e     = bitmapSet bitmap s >> bitmapSetRange bitmap (s+1) e
 	| otherwise = return ()
 
-bitmapClear :: Bitmap -> Int -> IO ()
+bitmapClear :: BitmapPtr -> Int -> IO ()
 bitmapClear bitmap n = bitmapModify bitmap n (flip clearBit)
