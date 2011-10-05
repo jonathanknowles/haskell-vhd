@@ -3,7 +3,6 @@ module Data.VHD.Types where
 import Control.Exception
 import qualified Data.ByteString as B
 import Data.Word
-import Data.Vector.Unboxed (Vector)
 
 data Header = Header
 	{ headerCookie               :: Cookie
@@ -36,9 +35,6 @@ data Footer = Footer
 	, footerUniqueId           :: UniqueId
 	, footerIsSavedState       :: Bool
 	} deriving (Show,Eq)
-
-newtype Bat = Bat (Vector Word32)
-	deriving (Show,Eq)
 
 type BlockSize                   = Word32
 type DiskGeometryCylinders       = Word16
