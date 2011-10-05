@@ -64,7 +64,7 @@ writeBlock :: BlockPtr -> ByteString -> Int -> IO ()
 writeBlock block bs offset = do
 	-- sectors need to be prepared for differential disk if the bitmap was clear before,
 	-- at the moment assumption is it's 0ed
-	bitmapSetRange bitmapPtr (fromIntegral bsector) (fromIntegral $ esector-1)
+	bitmapSetRange bitmapPtr (fromIntegral bsector) (fromIntegral esector)
 	B.unsafeUseAsCString bs (\bsptr -> B.memcpy (dataPtr `plusPtr` offset) (castPtr bsptr) (fromIntegral $ B.length bs))
 	where
 		bitmapPtr = bitmapOfBlock block
@@ -90,10 +90,9 @@ bitmapSet bitmap n = bitmapModify bitmap n (flip setBit)
 
 -- FIXME use a faster way to set multiple bits when time permits
 bitmapSetRange :: BitmapPtr -> Int -> Int -> IO ()
-bitmapSetRange bitmap s e
-	| s == e    = bitmapSet bitmap s
-	| s < e     = bitmapSet bitmap s >> bitmapSetRange bitmap (s+1) e
-	| otherwise = return ()
+bitmapSetRange bitmap start end
+	| start < end = bitmapSet bitmap start >> bitmapSetRange bitmap (start + 1) end
+	| otherwise   = return ()
 
 bitmapClear :: BitmapPtr -> Int -> IO ()
 bitmapClear bitmap n = bitmapModify bitmap n (flip clearBit)
