@@ -1,5 +1,5 @@
 module Data.VHD.Block
-	( Block
+	( BlockPtr
 	, Sector
 	, withBlock
 	, writeBlock
@@ -30,7 +30,7 @@ import Control.Monad
 
 import System.IO.MMap
 
-data Block = Block BlockSize (Ptr Word8)
+data BlockPtr = BlockPtr BlockSize (Ptr Word8)
 
 data Sector = Sector (Ptr Word8)
 
@@ -44,16 +44,16 @@ bitmapSizeOfBlock blockSize = fromIntegral ((nbSector `divRoundUp` 8) `roundUpTo
 
 -- | get a bitmap type out of a block type.
 -- the bitmap happens to be at the beginning of the block.
-bitmapOfBlock :: Block -> Bitmap
-bitmapOfBlock (Block _ ptr) = Bitmap ptr
+bitmapOfBlock :: BlockPtr -> Bitmap
+bitmapOfBlock (BlockPtr _ ptr) = Bitmap ptr
 
-dataOfBlock :: Block -> Ptr Word8
-dataOfBlock (Block bs ptr) = ptr `plusPtr` (bitmapSizeOfBlock bs)
+dataOfBlock :: BlockPtr -> Ptr Word8
+dataOfBlock (BlockPtr bs ptr) = ptr `plusPtr` (bitmapSizeOfBlock bs)
 
 -- | mmap a block using a filepath, a blocksize
-withBlock :: FilePath -> BlockSize -> Word32 -> (Block -> IO a) -> IO a
+withBlock :: FilePath -> BlockSize -> Word32 -> (BlockPtr -> IO a) -> IO a
 withBlock file bs sectorOff f = mmapWithFilePtr file ReadWrite (Just offsetSize) $ \(ptr, sz) ->
-		f (Block bs $ castPtr ptr)
+		f (BlockPtr bs $ castPtr ptr)
 	where
 		absoluteOffset = fromIntegral (fromIntegral sectorOff * sectorLength)
 		offsetSize     = (absoluteOffset, fromIntegral bs + fromIntegral bitmapSize)
@@ -61,7 +61,7 @@ withBlock file bs sectorOff f = mmapWithFilePtr file ReadWrite (Just offsetSize)
 		bitmapSize     = (nbSector `divRoundUp` 8) `roundUpToModulo` sectorLength
 
 
-writeBlock :: Block -> ByteString -> Int -> IO ()
+writeBlock :: BlockPtr -> ByteString -> Int -> IO ()
 writeBlock block bs offset = do
 	-- sectors need to be prepared for differential disk if the bitmap was clear before,
 	-- at the moment assumption is it's 0ed
