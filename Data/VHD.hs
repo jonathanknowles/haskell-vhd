@@ -13,6 +13,7 @@ import Data.VHD.Types
 import Data.VHD.Bat
 import Data.VHD.Block
 import Data.VHD.Utils
+import Data.VHD.CheckSum
 import Data.Bits
 import Data.Word
 
@@ -48,7 +49,7 @@ create filePath bs virtualSize =
 		footerSize      = 512
 		headerSize      = 1024 -- actually 1020
 
-		footer = Footer
+		footer = adjustFooterChecksum $ Footer
 			{ footerCookie             = cookie "conectix"
 			, footerIsTemporaryDisk    = False
 			, footerFormatVersion      = Version 1 0
@@ -61,18 +62,18 @@ create filePath bs virtualSize =
 			, footerCurrentSize        = virtualSize
 			, footerDiskGeometry       = DiskGeometry 1 1 1 -- c h s wrong
 			, footerDiskType           = DiskTypeDynamic
-			, footerCheckSum           = 0 -- wrong
+			, footerCheckSum           = 0
 			, footerUniqueId           = randomUniqueId
 			, footerIsSavedState       = False
 			}
-		header = Header
+		header = adjustHeaderChecksum $ Header
 			{ headerCookie               = cookie "cxsparse"
 			, headerDataOffset           = 0xffffffffffffffff
 			, headerTableOffset          = footerSize + headerSize
 			, headerVersion              = Version 1 0
 			, headerMaxTableEntries      = maxTableEntries
 			, headerBlockSize            = bs
-			, headerCheckSum             = 0 -- wrong
+			, headerCheckSum             = 0
 			, headerParentUniqueId       = randomUniqueId
 			, headerParentTimeStamp      = 0 -- wrong
 			, headerParentUnicodeName    = parentUnicodeName $ B.replicate 512 0
