@@ -36,6 +36,14 @@ data Footer = Footer
 	, footerIsSavedState       :: Bool
 	} deriving (Show,Eq)
 
+data BatmapHeader = BatmapHeader
+	{ batmapHeaderCookie       :: Cookie
+	, batmapHeaderOffset       :: Offset
+	, batmapHeaderSize         :: Word32
+	, batmapHeaderVersion      :: Version
+	, batmapHeaderCheckSum     :: CheckSum
+	} deriving (Show,Eq)
+
 type BlockSize                   = Word32
 type DiskGeometryCylinders       = Word16
 type DiskGeometryHeads           = Word8

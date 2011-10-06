@@ -13,6 +13,7 @@ import Data.VHD.Types
 import Data.VHD.Bat
 import Data.VHD.Block
 import Data.VHD.Utils
+import Data.VHD.CheckSum
 import Data.Bits
 import Data.Word
 
@@ -32,7 +33,15 @@ instance Serialize DynamicDiskInfo where
 		put $ header d
 
 create :: FilePath -> BlockSize -> Size -> IO ()
-create filePath bs virtualSize =
+create = do
+	now <- fromIntegral . fromEnum <$> getPOSIXTime
+	createWithTimeStamp (fromIntegral (now - y2k))
+	where
+		y2k :: Word64
+		y2k = 946684800 -- seconds from the unix epoch to the vhd epoch
+
+createWithTimeStamp :: TimeStamp -> FilePath -> BlockSize -> Size -> IO ()
+createWithTimeStamp timeStamp filePath bs virtualSize =
 	withFile filePath WriteMode $ \handle -> do
 		B.hPut handle $ encode (DynamicDiskInfo footer header)
 		hAlign handle (fromIntegral sectorLength)
@@ -48,31 +57,31 @@ create filePath bs virtualSize =
 		footerSize      = 512
 		headerSize      = 1024 -- actually 1020
 
-		footer = Footer
+		footer = adjustFooterChecksum $ Footer
 			{ footerCookie             = cookie "conectix"
 			, footerIsTemporaryDisk    = False
 			, footerFormatVersion      = Version 1 0
-			, footerDataOffset         = footerSize -- wrong
-			, footerTimeStamp          = 0xffffffff -- wrong
-			, footerCreatorApplication = creatorApplication "ptap"
+			, footerDataOffset         = footerSize
+			, footerTimeStamp          = timeStamp
+			, footerCreatorApplication = creatorApplication "tap\0"
 			, footerCreatorVersion     = Version 1 0
 			, footerCreatorHostOs      = CreatorHostOsWindows
 			, footerOriginalSize       = virtualSize
 			, footerCurrentSize        = virtualSize
 			, footerDiskGeometry       = DiskGeometry 1 1 1 -- c h s wrong
 			, footerDiskType           = DiskTypeDynamic
-			, footerCheckSum           = 0 -- wrong
+			, footerCheckSum           = 0
 			, footerUniqueId           = randomUniqueId
 			, footerIsSavedState       = False
 			}
-		header = Header
+		header = adjustHeaderChecksum $ Header
 			{ headerCookie               = cookie "cxsparse"
-			, headerDataOffset           = 0xffffffff
+			, headerDataOffset           = 0xffffffffffffffff
 			, headerTableOffset          = footerSize + headerSize
 			, headerVersion              = Version 1 0
 			, headerMaxTableEntries      = maxTableEntries
 			, headerBlockSize            = bs
-			, headerCheckSum             = 0 -- wrong
+			, headerCheckSum             = 0
 			, headerParentUniqueId       = randomUniqueId
 			, headerParentTimeStamp      = 0 -- wrong
 			, headerParentUnicodeName    = parentUnicodeName $ B.replicate 512 0
