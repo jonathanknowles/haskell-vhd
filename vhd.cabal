@@ -26,6 +26,7 @@ Library
                    , mmap
                    , time
                    , cereal
+                   , random
                    , storable-endian
   Exposed-modules:   Data.VHD
 

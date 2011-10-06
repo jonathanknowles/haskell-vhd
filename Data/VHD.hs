@@ -44,13 +44,14 @@ create filePath bs virtualSize = do
 createWithTimeStamp :: TimeStamp -> FilePath -> BlockSize -> Size -> IO ()
 createWithTimeStamp timeStamp filePath bs virtualSize =
 	withFile filePath WriteMode $ \handle -> do
-		B.hPut handle $ encode (DynamicDiskInfo footer header)
+		id <- randomUniqueId
+		B.hPut handle $ encode (DynamicDiskInfo (footer id) header)
 		hAlign handle (fromIntegral sectorLength)
 		-- create a BAT with every entry initialized to 0xffffffff.
 		B.hPut handle $ B.replicate (fromIntegral batSize) 0xff
 
 		hAlign handle (fromIntegral sectorLength)
-		B.hPut handle $ encode footer
+		B.hPut handle $ encode (footer id)
 	where
 		maxTableEntries = fromIntegral (virtualSize `divRoundUp` fromIntegral bs)
 		batSize         = (maxTableEntries * 4) `roundUpToModulo` sectorLength
@@ -58,7 +59,7 @@ createWithTimeStamp timeStamp filePath bs virtualSize =
 		footerSize      = 512
 		headerSize      = 1024 -- actually 1020
 
-		footer = adjustFooterChecksum $ Footer
+		footer id = adjustFooterChecksum $ Footer
 			{ footerCookie             = cookie "conectix"
 			, footerIsTemporaryDisk    = False
 			, footerFormatVersion      = Version 1 0
@@ -72,7 +73,7 @@ createWithTimeStamp timeStamp filePath bs virtualSize =
 			, footerDiskGeometry       = DiskGeometry 1 1 1 -- c h s wrong
 			, footerDiskType           = DiskTypeDynamic
 			, footerCheckSum           = 0
-			, footerUniqueId           = randomUniqueId
+			, footerUniqueId           = id
 			, footerIsSavedState       = False
 			}
 		header = adjustHeaderChecksum $ Header
@@ -83,12 +84,11 @@ createWithTimeStamp timeStamp filePath bs virtualSize =
 			, headerMaxTableEntries      = maxTableEntries
 			, headerBlockSize            = bs
 			, headerCheckSum             = 0
-			, headerParentUniqueId       = randomUniqueId
+			, headerParentUniqueId       = uniqueId $ B.replicate 16 0 -- wrong
 			, headerParentTimeStamp      = 0 -- wrong
 			, headerParentUnicodeName    = parentUnicodeName $ B.replicate 512 0
 			, headerParentLocatorEntries = parentLocatorEntries $ replicate 8 (ParentLocatorEntry $ B.replicate 24 0)
 			}
-		randomUniqueId = uniqueId $ B.replicate 16 0 -- wrong
 
 readDynamicDiskInfoFromFile :: FilePath -> IO (Either String DynamicDiskInfo)
 readDynamicDiskInfoFromFile f = return . decodeLazy =<< BL.readFile f

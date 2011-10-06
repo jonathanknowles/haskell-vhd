@@ -1,8 +1,10 @@
 module Data.VHD.Types where
 
 import Control.Exception
+import Control.Monad
 import qualified Data.ByteString as B
 import Data.Word
+import System.Random
 
 data Header = Header
 	{ headerCookie               :: Cookie
@@ -87,4 +89,11 @@ parentLocatorEntries e = assert (  length e ==   8) $ ParentLocatorEntries e
 parentLocatorEntry   e = assert (B.length e ==  24) $ ParentLocatorEntry   e
 parentUnicodeName    n = assert (B.length n == 512) $ ParentUnicodeName    n
 uniqueId             i = assert (B.length i ==  16) $ UniqueId             i
+
+randomUniqueId :: IO UniqueId
+randomUniqueId
+	= liftM (uniqueId . B.pack)
+	$ replicateM 16
+	$ liftM fromIntegral
+	$ randomRIO (0 :: Int, 255)
 
