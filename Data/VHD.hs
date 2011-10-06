@@ -45,7 +45,7 @@ createWithTimeStamp timeStamp filePath bs virtualSize =
 	withFile filePath WriteMode $ \handle -> do
 		B.hPut handle $ encode (DynamicDiskInfo footer header)
 		hAlign handle (fromIntegral sectorLength)
-		-- create a BAT with every entries initialized at 0xffffffff.
+		-- create a BAT with every entry initialized to 0xffffffff.
 		B.hPut handle $ B.replicate (fromIntegral batSize) 0xff
 
 		hAlign handle (fromIntegral sectorLength)
