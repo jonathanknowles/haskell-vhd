@@ -33,7 +33,15 @@ instance Serialize DynamicDiskInfo where
 		put $ header d
 
 create :: FilePath -> BlockSize -> Size -> IO ()
-create filePath bs virtualSize =
+create = do
+	now <- fromIntegral . fromEnum <$> getPOSIXTime
+	createWithTimeStamp (fromIntegral (now - y2k))
+	where
+		y2k :: Word64
+		y2k = 946684800 -- seconds from the unix epoch to the vhd epoch
+
+createWithTimeStamp :: TimeStamp -> FilePath -> BlockSize -> Size -> IO ()
+createWithTimeStamp timeStamp filePath bs virtualSize =
 	withFile filePath WriteMode $ \handle -> do
 		B.hPut handle $ encode (DynamicDiskInfo footer header)
 		hAlign handle (fromIntegral sectorLength)
@@ -54,7 +62,7 @@ create filePath bs virtualSize =
 			, footerIsTemporaryDisk    = False
 			, footerFormatVersion      = Version 1 0
 			, footerDataOffset         = footerSize
-			, footerTimeStamp          = 0xffffffff -- wrong
+			, footerTimeStamp          = timeStamp
 			, footerCreatorApplication = creatorApplication "tap\0"
 			, footerCreatorVersion     = Version 1 0
 			, footerCreatorHostOs      = CreatorHostOsWindows
