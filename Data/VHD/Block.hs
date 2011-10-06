@@ -61,16 +61,16 @@ withBlock file bs sectorOff f = mmapWithFilePtr file ReadWrite (Just offsetSize)
 		bitmapSize     = (nbSector `divRoundUp` 8) `roundUpToModulo` sectorLength
 
 writeBlock :: Block -> ByteString -> Int -> IO ()
-writeBlock block bs offset = do
+writeBlock block content offset = do
 	-- sectors need to be prepared for differential disk if the bitmap was clear before,
 	-- at the moment assumption is it's 0ed
 	bitmapSetRange bitmapPtr (fromIntegral sectorStart) (fromIntegral sectorEnd)
-	B.unsafeUseAsCString bs (\bsptr -> B.memcpy (dataPtr `plusPtr` offset) (castPtr bsptr) (fromIntegral $ B.length bs))
+	B.unsafeUseAsCString content (\bsptr -> B.memcpy (dataPtr `plusPtr` offset) (castPtr bsptr) (fromIntegral $ B.length content))
 	where
 		bitmapPtr   = bitmapOfBlock block
 		dataPtr     = dataOfBlock block
 		sectorStart = fromIntegral offset `div` sectorLength
-		sectorEnd   = fromIntegral (offset + B.length bs) `div` sectorLength
+		sectorEnd   = fromIntegral (offset + B.length content) `div` sectorLength
 
 bitmapGet :: Bitmap -> Int -> IO Bool
 bitmapGet (Bitmap ptr) n = test `fmap` peekByteOff ptr offset
