@@ -78,8 +78,9 @@ writeBlock block content offset = do
 	-- sectors need to be prepared for differential disk if the bitmap was clear before,
 	-- at the moment assumption is it's 0ed
 	bitmapSetRange bitmapPtr (fromIntegral sectorStart) (fromIntegral sectorEnd)
-	B.unsafeUseAsCString content (\bsptr -> B.memcpy (dataPtr `plusPtr` offset) (castPtr bsptr) (fromIntegral $ B.length content))
+	B.unsafeUseAsCString content (\bsptr -> B.memcpy (dataPtr `plusPtr` offset) (castPtr bsptr) (fromIntegral length))
 	where
+		length      = B.length content
 		bitmapPtr   = bitmapOfBlock block
 		dataPtr     = dataOfBlock block
 		sectorStart = fromIntegral offset `div` sectorLength
