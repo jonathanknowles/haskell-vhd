@@ -16,6 +16,7 @@ import Data.VHD.Utils
 import Data.VHD.CheckSum
 import Data.Bits
 import Data.Word
+import Data.Time.Clock.POSIX
 
 import System.IO
 
@@ -33,9 +34,9 @@ instance Serialize DynamicDiskInfo where
 		put $ header d
 
 create :: FilePath -> BlockSize -> Size -> IO ()
-create = do
+create filePath bs virtualSize = do
 	now <- fromIntegral . fromEnum <$> getPOSIXTime
-	createWithTimeStamp (fromIntegral (now - y2k))
+	createWithTimeStamp (fromIntegral (now - y2k)) filePath bs virtualSize
 	where
 		y2k :: Word64
 		y2k = 946684800 -- seconds from the unix epoch to the vhd epoch
