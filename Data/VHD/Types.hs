@@ -5,6 +5,8 @@ import Control.Monad
 import qualified Data.ByteString as B
 import Data.Word
 import System.Random
+import Text.Printf
+import Data.List
 
 data Header = Header
 	{ headerCookie               :: Cookie
@@ -80,7 +82,11 @@ newtype Cookie               = Cookie             B.ByteString deriving (Show,Eq
 newtype CreatorApplication   = CreatorApplication B.ByteString deriving (Show,Eq)
 newtype ParentLocatorEntry   = ParentLocatorEntry B.ByteString deriving (Show,Eq)
 newtype ParentUnicodeName    = ParentUnicodeName  B.ByteString deriving (Show,Eq)
-newtype UniqueId             = UniqueId           B.ByteString deriving (Show,Eq)
+newtype UniqueId             = UniqueId           B.ByteString deriving (Eq)
+
+instance Show UniqueId where
+	show (UniqueId b) = intercalate "-" $ map disp [[0..3],[4,5],[6,7],[8,9],[10..15]]
+		where disp = concatMap (printf "%02x" . B.index b)
 
 newtype ParentLocatorEntries = ParentLocatorEntries [ParentLocatorEntry] deriving (Show,Eq)
 
