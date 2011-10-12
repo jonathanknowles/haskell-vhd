@@ -8,6 +8,7 @@ import System.Environment (getArgs)
 import System.IO
 import Text.Printf
 import Control.Monad
+import Data.Char
 
 import Data.IORef
 
@@ -48,6 +49,19 @@ readVhd file = withVhdContext file $ \ctx -> do
 	nb <- readIORef allocated
 	putStrLn ("block allocated   : " ++ show nb ++ "/" ++ show (headerMaxTableEntries hdr))
 
+propGet file key = withVhdContext file $ \ctx -> do
+	case map toLower key of
+		"max-table-entries"   -> putStrLn $ show $ headerMaxTableEntries $ ctxHeader ctx
+		"blocksize"           -> putStrLn $ show $ headerBlockSize $ ctxHeader ctx
+		"disk-type"           -> putStrLn $ show $ footerDiskType $ ctxFooter ctx
+		"current-size"        -> putStrLn $ show $ footerCurrentSize $ ctxFooter ctx
+		"uuid"                -> putStrLn $ show $ footerUniqueId $ ctxFooter ctx
+		"parent-uuid"         -> putStrLn $ show $ headerParentUniqueId $ ctxHeader ctx
+		"parent-timestamp"    -> putStrLn $ show $ headerParentTimeStamp $ ctxHeader ctx
+		"parent-filepath"     -> putStrLn $ show $ headerParentUnicodeName $ ctxHeader ctx
+		"timestamp"           -> putStrLn $ show $ footerTimeStamp $ ctxFooter ctx
+		_                     -> error "unknown key"
+
 fromRaw fileRaw fileVhd size = do
 	create fileVhd blockSize size
 	withVhdContext fileVhd $ \ctx -> do
@@ -79,3 +93,4 @@ main = do
 		["create", file] -> create file (2 * 1024 * 1024) (1 * 1024 * 1024 * 1024)
 		["read", file]   -> readVhd file
 		["convert", file, vhdfile, size] -> fromRaw file vhdfile (read size*1024*1024*1024)
+		["prop-get", file, key]          -> propGet file key
