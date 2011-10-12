@@ -8,6 +8,7 @@ import System.Environment (getArgs)
 import System.IO
 import Text.Printf
 import Control.Monad
+import Data.Char
 
 import Data.IORef
 
@@ -29,6 +30,9 @@ readVhd file = withVhdContext file $ \ctx -> do
 		, ("block-size       ", showBlockSize $ headerBlockSize hdr)
 		, ("header-checksum  ", printf "%08x (%s)" (headerCheckSum hdr)
 		                                           (if verifyHeaderChecksum hdr then "valid" else "invalid"))
+		, ("parent-uuid      ", show $ headerParentUniqueId hdr)
+		, ("parent-filepath  ", show $ headerParentUnicodeName hdr)
+		, ("parent-timestamp ", show $ headerParentTimeStamp hdr)
 		]
 	mapM_ (\(f,s) -> putStrLn (f ++ " : " ++ s))
 		[ ("disk-geometry    ", show $ footerDiskGeometry ftr)
@@ -37,12 +41,27 @@ readVhd file = withVhdContext file $ \ctx -> do
 		, ("type             ", show $ footerDiskType ftr)
 		, ("footer-checksum  ", printf "%08x (%s)" (footerCheckSum ftr)
 		                                           (if verifyFooterChecksum ftr then "valid" else "invalid"))
+		, ("uuid             ", show $ footerUniqueId ftr)
+		, ("timestamp        ", show $ footerTimeStamp ftr)
 		]
 	allocated <- newIORef 0
 	batIterate (ctxBatPtr ctx) (fromIntegral $ headerMaxTableEntries hdr) $ \i n -> do
 		unless (n == 0xffffffff) $ modifyIORef allocated ((+) 1) >> printf "BAT[%.5x] = %08x\n" i n
 	nb <- readIORef allocated
 	putStrLn ("block allocated   : " ++ show nb ++ "/" ++ show (headerMaxTableEntries hdr))
+
+propGet file key = withVhdContext file $ \ctx -> do
+	case map toLower key of
+		"max-table-entries"   -> putStrLn $ show $ headerMaxTableEntries $ ctxHeader ctx
+		"blocksize"           -> putStrLn $ show $ headerBlockSize $ ctxHeader ctx
+		"disk-type"           -> putStrLn $ show $ footerDiskType $ ctxFooter ctx
+		"current-size"        -> putStrLn $ show $ footerCurrentSize $ ctxFooter ctx
+		"uuid"                -> putStrLn $ show $ footerUniqueId $ ctxFooter ctx
+		"parent-uuid"         -> putStrLn $ show $ headerParentUniqueId $ ctxHeader ctx
+		"parent-timestamp"    -> putStrLn $ show $ headerParentTimeStamp $ ctxHeader ctx
+		"parent-filepath"     -> putStrLn $ show $ headerParentUnicodeName $ ctxHeader ctx
+		"timestamp"           -> putStrLn $ show $ footerTimeStamp $ ctxFooter ctx
+		_                     -> error "unknown key"
 
 fromRaw fileRaw fileVhd size = do
 	create fileVhd blockSize size
@@ -75,3 +94,4 @@ main = do
 		["create", file] -> create file (2 * 1024 * 1024) (1 * 1024 * 1024 * 1024)
 		["read", file]   -> readVhd file
 		["convert", file, vhdfile, size] -> fromRaw file vhdfile (read size*1024*1024*1024)
+		["prop-get", file, key]          -> propGet file key

@@ -5,6 +5,10 @@ import Control.Monad
 import qualified Data.ByteString as B
 import Data.Word
 import System.Random
+import Text.Printf
+import Data.List
+import Data.Text.Encoding
+import qualified Data.Text as T
 
 data Header = Header
 	{ headerCookie               :: Cookie
@@ -16,6 +20,7 @@ data Header = Header
 	, headerCheckSum             :: CheckSum
 	, headerParentUniqueId       :: UniqueId
 	, headerParentTimeStamp      :: TimeStamp
+	, headerReserved1            :: B.ByteString
 	, headerParentUnicodeName    :: ParentUnicodeName
 	, headerParentLocatorEntries :: ParentLocatorEntries
 	} deriving (Show,Eq)
@@ -78,8 +83,12 @@ data DiskType
 newtype Cookie               = Cookie             B.ByteString deriving (Show,Eq)
 newtype CreatorApplication   = CreatorApplication B.ByteString deriving (Show,Eq)
 newtype ParentLocatorEntry   = ParentLocatorEntry B.ByteString deriving (Show,Eq)
-newtype ParentUnicodeName    = ParentUnicodeName  B.ByteString deriving (Show,Eq)
-newtype UniqueId             = UniqueId           B.ByteString deriving (Show,Eq)
+newtype ParentUnicodeName    = ParentUnicodeName  String       deriving (Show,Eq)
+newtype UniqueId             = UniqueId           B.ByteString deriving (Eq)
+
+instance Show UniqueId where
+	show (UniqueId b) = intercalate "-" $ map disp [[0..3],[4,5],[6,7],[8,9],[10..15]]
+		where disp = concatMap (printf "%02x" . B.index b)
 
 newtype ParentLocatorEntries = ParentLocatorEntries [ParentLocatorEntry] deriving (Show,Eq)
 
@@ -87,8 +96,13 @@ cookie               c = assert (B.length c ==   8) $ Cookie               c
 creatorApplication   a = assert (B.length a ==   4) $ CreatorApplication   a
 parentLocatorEntries e = assert (  length e ==   8) $ ParentLocatorEntries e
 parentLocatorEntry   e = assert (B.length e ==  24) $ ParentLocatorEntry   e
-parentUnicodeName    n = assert (B.length n == 512) $ ParentUnicodeName    n
 uniqueId             i = assert (B.length i ==  16) $ UniqueId             i
+
+parentUnicodeName n
+	| encodedLength > 512 = error "parent unicode name length need to be < 512 bytes"
+	| otherwise           = ParentUnicodeName n
+	where
+		encodedLength = B.length $ encodeUtf16BE $ T.pack n
 
 randomUniqueId :: IO UniqueId
 randomUniqueId
