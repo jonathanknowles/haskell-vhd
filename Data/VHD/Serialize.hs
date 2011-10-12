@@ -10,6 +10,8 @@ import Data.VHD.Types
 import Data.Serialize
 import Data.Serialize.Get
 import Data.Serialize.Put
+import Data.Text.Encoding
+import qualified Data.Text as T
 
 instance Serialize Header where
 	get = Header
@@ -166,12 +168,17 @@ putCreatorVersion = putVersion
 getFormatVersion  = getVersion
 putFormatVersion  = putVersion
 
-getParentUnicodeName = parentUnicodeName <$> getByteString 512
-putParentUnicodeName (ParentUnicodeName c) = putByteString c
+getParentUnicodeName = parentUnicodeName . demarshall <$> getByteString 512
+	where demarshall = takeWhile ((/=) '\0') . T.unpack . decodeUtf16BE
+putParentUnicodeName (ParentUnicodeName c)
+	| blen > 512 = error "parent unicode name length is greater than 512"
+	| otherwise  = putByteString b >> putByteString (B.replicate (512 - blen) 0)
+	where
+		b    = encodeUtf16BE $ T.pack c
+		blen = B.length b
 
 getParentLocatorEntry = parentLocatorEntry <$> getByteString 24
 putParentLocatorEntry (ParentLocatorEntry e) = putByteString e
 
 getParentLocatorEntries = parentLocatorEntries <$> replicateM 8 getParentLocatorEntry
 putParentLocatorEntries (ParentLocatorEntries es) = mapM_ putParentLocatorEntry es
-

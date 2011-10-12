@@ -31,6 +31,7 @@ readVhd file = withVhdContext file $ \ctx -> do
 		, ("header-checksum  ", printf "%08x (%s)" (headerCheckSum hdr)
 		                                           (if verifyHeaderChecksum hdr then "valid" else "invalid"))
 		, ("parent-uuid      ", show $ headerParentUniqueId hdr)
+		, ("parent-filepath  ", show $ headerParentUnicodeName hdr)
 		, ("parent-timestamp ", show $ headerParentTimeStamp hdr)
 		]
 	mapM_ (\(f,s) -> putStrLn (f ++ " : " ++ s))

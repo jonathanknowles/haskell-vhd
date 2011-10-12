@@ -29,7 +29,7 @@ instance Arbitrary ParentLocatorEntries where
 	arbitrary = parentLocatorEntries <$> replicateM 8 arbitrary
 
 instance Arbitrary ParentUnicodeName where
-	arbitrary = parentUnicodeName . B.pack <$> replicateM 512 arbitrary
+	arbitrary = parentUnicodeName <$> replicateM 64 (arbitrary `suchThat` (\w -> w /= '\0'))
 
 instance Arbitrary DiskGeometry where
 	arbitrary = DiskGeometry <$> arbitrary <*> arbitrary <*> arbitrary
