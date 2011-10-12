@@ -29,6 +29,8 @@ readVhd file = withVhdContext file $ \ctx -> do
 		, ("block-size       ", showBlockSize $ headerBlockSize hdr)
 		, ("header-checksum  ", printf "%08x (%s)" (headerCheckSum hdr)
 		                                           (if verifyHeaderChecksum hdr then "valid" else "invalid"))
+		, ("parent-uuid      ", show $ headerParentUniqueId hdr)
+		, ("parent-timestamp ", show $ headerParentTimeStamp hdr)
 		]
 	mapM_ (\(f,s) -> putStrLn (f ++ " : " ++ s))
 		[ ("disk-geometry    ", show $ footerDiskGeometry ftr)
@@ -37,6 +39,8 @@ readVhd file = withVhdContext file $ \ctx -> do
 		, ("type             ", show $ footerDiskType ftr)
 		, ("footer-checksum  ", printf "%08x (%s)" (footerCheckSum ftr)
 		                                           (if verifyFooterChecksum ftr then "valid" else "invalid"))
+		, ("uuid             ", show $ footerUniqueId ftr)
+		, ("timestamp        ", show $ footerTimeStamp ftr)
 		]
 	allocated <- newIORef 0
 	batIterate (ctxBatPtr ctx) (fromIntegral $ headerMaxTableEntries hdr) $ \i n -> do
