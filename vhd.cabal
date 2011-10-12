@@ -24,6 +24,7 @@ Library
   Build-depends:     base >= 4 && < 5
                    , bytestring
                    , mmap
+                   , text
                    , time
                    , cereal
                    , random

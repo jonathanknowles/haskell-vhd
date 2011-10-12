@@ -84,9 +84,10 @@ createWithTimeStamp timeStamp filePath bs virtualSize =
 			, headerMaxTableEntries      = maxTableEntries
 			, headerBlockSize            = bs
 			, headerCheckSum             = 0
-			, headerParentUniqueId       = uniqueId $ B.replicate 16 0 -- wrong
-			, headerParentTimeStamp      = 0 -- wrong
-			, headerParentUnicodeName    = parentUnicodeName $ B.replicate 512 0
+			, headerParentUniqueId       = uniqueId $ B.replicate 16 0
+			, headerParentTimeStamp      = 0
+			, headerReserved1            = B.replicate 4 0
+			, headerParentUnicodeName    = parentUnicodeName ""
 			, headerParentLocatorEntries = parentLocatorEntries $ replicate 8 (ParentLocatorEntry $ B.replicate 24 0)
 			}
 
