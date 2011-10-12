@@ -16,6 +16,7 @@ data Header = Header
 	, headerCheckSum             :: CheckSum
 	, headerParentUniqueId       :: UniqueId
 	, headerParentTimeStamp      :: TimeStamp
+	, headerReserved1            :: B.ByteString
 	, headerParentUnicodeName    :: ParentUnicodeName
 	, headerParentLocatorEntries :: ParentLocatorEntries
 	} deriving (Show,Eq)

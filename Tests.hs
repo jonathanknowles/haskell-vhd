@@ -51,6 +51,7 @@ instance Arbitrary Header where
 		<*> arbitrary
 		<*> arbitrary
 		<*> arbitrary
+		<*> (pure $ B.replicate 4 0)
 		<*> arbitrary
 		<*> arbitrary
 

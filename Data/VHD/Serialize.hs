@@ -22,6 +22,7 @@ instance Serialize Header where
 		<*> getCheckSum
 		<*> getParentUniqueId
 		<*> getParentTimeStamp
+		<*> getByteString 4
 		<*> getParentUnicodeName
 		<*> getParentLocatorEntries
 		<*  getHeaderPadding
@@ -35,6 +36,7 @@ instance Serialize Header where
 		putCheckSum             $ headerCheckSum             h
 		putParentUniqueId       $ headerParentUniqueId       h
 		putParentTimeStamp      $ headerParentTimeStamp      h
+		putByteString           $ headerReserved1            h
 		putParentUnicodeName    $ headerParentUnicodeName    h
 		putParentLocatorEntries $ headerParentLocatorEntries h
 		putHeaderPadding
