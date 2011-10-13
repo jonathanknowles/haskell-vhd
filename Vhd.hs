@@ -20,7 +20,10 @@ showBlockSize i
 	| i < (1024^3) = printf "%d megabytes" (i`div`(1024^2))
 	| otherwise    = printf "%d gigabytes" (i`div`(1024^3))
 
-readVhd file = withVhdContext file $ \ctx -> do
+cmdCreate [name,size] = create name ((read size) * 1024 * 1024) (2 * 1024 * 1024)
+cmdCreate _           = error "usage: create <name> <size Mb>"
+
+cmdRead [file] = withVhdContext file $ \ctx -> do
 	let hdr = ctxHeader ctx
 	let ftr = ctxFooter ctx
 	mapM_ (\(f,s) -> putStrLn (f ++ " : " ++ s))
@@ -49,8 +52,9 @@ readVhd file = withVhdContext file $ \ctx -> do
 		unless (n == 0xffffffff) $ modifyIORef allocated ((+) 1) >> printf "BAT[%.5x] = %08x\n" i n
 	nb <- readIORef allocated
 	putStrLn ("block allocated   : " ++ show nb ++ "/" ++ show (headerMaxTableEntries hdr))
+cmdRead _ = error "usage: read <file>"
 
-propGet file key = withVhdContext file $ \ctx -> do
+cmdPropGet [file, key] = withVhdContext file $ \ctx -> do
 	case map toLower key of
 		"max-table-entries"   -> putStrLn $ show $ headerMaxTableEntries $ ctxHeader ctx
 		"blocksize"           -> putStrLn $ show $ headerBlockSize $ ctxHeader ctx
@@ -62,9 +66,10 @@ propGet file key = withVhdContext file $ \ctx -> do
 		"parent-filepath"     -> putStrLn $ show $ headerParentUnicodeName $ ctxHeader ctx
 		"timestamp"           -> putStrLn $ show $ footerTimeStamp $ ctxFooter ctx
 		_                     -> error "unknown key"
+cmdPropGet _ = error "usage: prop-get <file> <key>"
 
-fromRaw fileRaw fileVhd size = do
-	create fileVhd blockSize size
+cmdConvert [fileRaw,fileVhd,size] = do
+	create fileVhd blockSize (read size * 1024 * 1024)
 	withVhdContext fileVhd $ \ctx -> do
 		withFile fileRaw ReadMode $ \handle -> do
 			loop ctx handle 0
@@ -87,11 +92,12 @@ fromRaw fileRaw fileVhd size = do
 
 		isBlockZero = B.all ((==) 0)
 		blockSize = 2 * 1024 * 1024
+cmdConvert _ = error "usage: convert <raw file> <vhd file> <size Mb>"
 
 main = do
 	args <- getArgs
 	case args of
-		["create", file] -> create file (2 * 1024 * 1024) (1 * 1024 * 1024 * 1024)
-		["read", file]   -> readVhd file
-		["convert", file, vhdfile, size] -> fromRaw file vhdfile (read size*1024*1024*1024)
-		["prop-get", file, key]          -> propGet file key
+		"create":xs   -> cmdCreate xs
+		"read":xs     -> cmdRead xs
+		"convert":xs  -> cmdConvert xs
+		"prop-get":xs -> cmdPropGet xs
