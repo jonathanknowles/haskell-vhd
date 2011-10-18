@@ -39,6 +39,7 @@ data CreateParameters = CreateParameters
 	, size      :: Size
 	, timeStamp :: Maybe TimeStamp
 	, uuid      :: Maybe UniqueId
+	, useBatmap :: Bool
 	} deriving (Show,Eq)
 
 defaultCreateParameters = CreateParameters
@@ -46,6 +47,7 @@ defaultCreateParameters = CreateParameters
 	, size      = 0
 	, timeStamp = Nothing
 	, uuid      = Nothing
+	, useBatmap = False
 	}
 
 create :: FilePath -> CreateParameters -> IO ()
@@ -71,6 +73,20 @@ create' filePath createParams =
 		-- create a BAT with every entry initialized to 0xffffffff.
 		B.hPut handle $ B.replicate (fromIntegral batSize) 0xff
 
+		-- maybe create a batmap
+		when (useBatmap createParams) $ do
+			hAlign handle (fromIntegral sectorLength)
+			headerPos <- hTell handle
+			B.hPut handle $ encode $ BatmapHeader
+				{ batmapHeaderCookie   = cookie "tdbatmap"
+				, batmapHeaderOffset   = fromIntegral (headerPos + fromIntegral sectorLength)
+				, batmapHeaderSize     = 0x1
+				, batmapHeaderVersion  = Version 1 2
+				, batmapHeaderCheckSum = 0xffffffff
+				}
+			hAlign handle (fromIntegral sectorLength)
+			B.hPut handle $ B.replicate (fromIntegral (maxTableEntries `div` 8)) 0x0
+
 		hAlign handle (fromIntegral sectorLength)
 		B.hPut handle $ encode footer
 	where
@@ -88,7 +104,7 @@ create' filePath createParams =
 			, footerDataOffset         = footerSize
 			, footerTimeStamp          = fromJust $ timeStamp createParams
 			, footerCreatorApplication = creatorApplication "tap\0"
-			, footerCreatorVersion     = Version 1 0
+			, footerCreatorVersion     = if useBatmap createParams then Version 1 3 else Version 1 0
 			, footerCreatorHostOs      = CreatorHostOsWindows
 			, footerOriginalSize       = virtualSize
 			, footerCurrentSize        = virtualSize
