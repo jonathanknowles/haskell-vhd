@@ -15,6 +15,7 @@ import Data.VHD.Block
 import Data.VHD.Utils
 import Data.VHD.CheckSum
 import Data.Bits
+import Data.Maybe
 import Data.Word
 import Data.Time.Clock.POSIX
 
@@ -33,38 +34,59 @@ instance Serialize DynamicDiskInfo where
 		put $ footer d
 		put $ header d
 
-create :: FilePath -> BlockSize -> Size -> IO ()
-create filePath bs virtualSize = do
-	now <- fromIntegral . fromEnum <$> getPOSIXTime
-	createWithTimeStamp (fromIntegral (now - y2k)) filePath bs virtualSize
+data CreateParameters = CreateParameters
+	{ blockSize :: BlockSize
+	, size      :: Size
+	, timeStamp :: Maybe TimeStamp
+	, uuid      :: Maybe UniqueId
+	} deriving (Show,Eq)
+
+defaultCreateParameters = CreateParameters
+	{ blockSize = 2 * 1024 * 1024
+	, size      = 0
+	, timeStamp = Nothing
+	, uuid      = Nothing
+	}
+
+create :: FilePath -> CreateParameters -> IO ()
+create filePath createParams
+	| size createParams == 0 = error "cannot create a 0-sized VHD"
+	| otherwise              = do
+		nowUnixEpoch <- fromIntegral . fromEnum <$> getPOSIXTime
+		let nowVhdEpoch   = fromIntegral (nowUnixEpoch - y2k)
+		uniqueid <- randomUniqueId
+		create' filePath $ createParams
+			{ uuid      = Just $ maybe uniqueid id $ uuid createParams
+			, timeStamp = Just $ maybe nowVhdEpoch id $ timeStamp createParams
+			}
 	where
 		y2k :: Word64
 		y2k = 946684800 -- seconds from the unix epoch to the vhd epoch
 
-createWithTimeStamp :: TimeStamp -> FilePath -> BlockSize -> Size -> IO ()
-createWithTimeStamp timeStamp filePath bs virtualSize =
+create' :: FilePath -> CreateParameters -> IO ()
+create' filePath createParams =
 	withFile filePath WriteMode $ \handle -> do
-		id <- randomUniqueId
-		B.hPut handle $ encode (DynamicDiskInfo (footer id) header)
+		B.hPut handle $ encode (DynamicDiskInfo footer header)
 		hAlign handle (fromIntegral sectorLength)
 		-- create a BAT with every entry initialized to 0xffffffff.
 		B.hPut handle $ B.replicate (fromIntegral batSize) 0xff
 
 		hAlign handle (fromIntegral sectorLength)
-		B.hPut handle $ encode (footer id)
+		B.hPut handle $ encode footer
 	where
-		maxTableEntries = fromIntegral (virtualSize `divRoundUp` fromIntegral bs)
+		virtualSize     = size createParams
+		maxTableEntries = fromIntegral (virtualSize `divRoundUp` fromIntegral (blockSize createParams))
 		batSize         = (maxTableEntries * 4) `roundUpToModulo` sectorLength
 		batPadSize      = batSize - maxTableEntries * 4
 		footerSize      = 512
 		headerSize      = 1024 -- actually 1020
 
-		footer id = adjustFooterChecksum $ Footer
+		footer = adjustFooterChecksum $ Footer
 			{ footerCookie             = cookie "conectix"
 			, footerIsTemporaryDisk    = False
 			, footerFormatVersion      = Version 1 0
 			, footerDataOffset         = footerSize
-			, footerTimeStamp          = timeStamp
+			, footerTimeStamp          = fromJust $ timeStamp createParams
 			, footerCreatorApplication = creatorApplication "tap\0"
 			, footerCreatorVersion     = Version 1 0
 			, footerCreatorHostOs      = CreatorHostOsWindows
@@ -73,7 +95,7 @@ createWithTimeStamp timeStamp filePath bs virtualSize =
 			, footerDiskGeometry       = DiskGeometry 1 1 1 -- c h s wrong
 			, footerDiskType           = DiskTypeDynamic
 			, footerCheckSum           = 0
-			, footerUniqueId           = id
+			, footerUniqueId           = fromJust $ uuid createParams
 			, footerIsSavedState       = False
 			}
 		header = adjustHeaderChecksum $ Header
@@ -82,7 +104,7 @@ createWithTimeStamp timeStamp filePath bs virtualSize =
 			, headerTableOffset          = footerSize + headerSize
 			, headerVersion              = Version 1 0
 			, headerMaxTableEntries      = maxTableEntries
-			, headerBlockSize            = bs
+			, headerBlockSize            = blockSize createParams
 			, headerCheckSum             = 0
 			, headerParentUniqueId       = uniqueId $ B.replicate 16 0
 			, headerParentTimeStamp      = 0

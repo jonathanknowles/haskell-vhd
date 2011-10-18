@@ -20,7 +20,7 @@ showBlockSize i
 	| i < (1024^3) = printf "%d megabytes" (i`div`(1024^2))
 	| otherwise    = printf "%d gigabytes" (i`div`(1024^3))
 
-cmdCreate [name,size] = create name ((read size) * 1024 * 1024) (2 * 1024 * 1024)
+cmdCreate [name,size] = create name $ defaultCreateParameters { size = (read size) * 1024 * 1024 }
 cmdCreate _           = error "usage: create <name> <size Mb>"
 
 cmdRead [file] = withVhdContext file $ \ctx -> do
@@ -69,7 +69,9 @@ cmdPropGet [file, key] = withVhdContext file $ \ctx -> do
 cmdPropGet _ = error "usage: prop-get <file> <key>"
 
 cmdConvert [fileRaw,fileVhd,size] = do
-	create fileVhd blockSize (read size * 1024 * 1024)
+	create fileVhd $ defaultCreateParameters
+		{ size = read size * 1024 * 1024
+		}
 	withVhdContext fileVhd $ \ctx -> do
 		withFile fileRaw ReadMode $ \handle -> do
 			loop ctx handle 0
