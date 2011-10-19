@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Data.VHD.Context
 	( Context(..)
 	, withVhdContext
@@ -13,6 +14,7 @@ import Data.VHD.Serialize
 import Data.Serialize (decode, encode)
 
 import qualified Data.ByteString as B
+import Data.ByteString.Char8 ()
 
 import System.IO
 
@@ -21,7 +23,6 @@ import Control.Monad
 
 data Context = Context
 	{ ctxBatPtr    :: Bat
-	, ctxBatmapPtr :: Bitmap
 	, ctxHeader    :: Header
 	, ctxFooter    :: Footer
 	, ctxHandle    :: Handle
@@ -32,11 +33,21 @@ withVhdContext file f = do
 	withFile file ReadWriteMode $ \handle -> do
 		footer <- either error id . decode <$> B.hGet handle 512
 		header <- either error id . decode <$> B.hGet handle 1024
-		batMmap file header footer $ \bat -> do
-		--batmapMmap file ddinfo $ \batmap -> do
+		mBatmapHdr <- if footerCreatorVersion footer == Version 1 3
+			then do
+				-- skip the BAT, and try reading the batmap header
+				hSeek handle RelativeSeek (fromIntegral $ batGetSize header footer)
+				batmapHdr <- decode <$> B.hGet handle 512
+				case batmapHdr of
+					Left _     -> return Nothing
+					Right bHdr ->
+						if batmapHeaderCookie bHdr == cookie "tdbatmap"
+							then return $ Just bHdr
+							else return Nothing
+			else return Nothing
+		batMmap file header footer mBatmapHdr $ \bat -> do
 			f $ Context
 				{ ctxBatPtr    = bat
-				, ctxBatmapPtr = undefined
 				, ctxHeader    = header
 				, ctxFooter    = footer
 				, ctxHandle    = handle
