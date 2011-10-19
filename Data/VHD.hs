@@ -80,7 +80,7 @@ create' filePath createParams =
 			B.hPut handle $ encode $ BatmapHeader
 				{ batmapHeaderCookie   = cookie "tdbatmap"
 				, batmapHeaderOffset   = fromIntegral (headerPos + fromIntegral sectorLength)
-				, batmapHeaderSize     = 0x1
+				, batmapHeaderSize     = (maxTableEntries `div` 8) `divRoundUp` sectorLength
 				, batmapHeaderVersion  = Version 1 2
 				, batmapHeaderCheckSum = 0xffffffff
 				}
