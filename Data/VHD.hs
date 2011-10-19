@@ -50,6 +50,15 @@ defaultCreateParameters = CreateParameters
 	, useBatmap = False
 	}
 
+getInfo :: FilePath -> IO (Either String (Header, Footer))
+getInfo filePath = withFile filePath ReadMode $ \handle -> do
+	footer <- decode <$> B.hGet handle 512
+	header <- decode <$> B.hGet handle 1024
+	case (footer, header) of
+		(Left err, _)      -> return $ Left err
+		(_, Left err)      -> return $ Left err
+		(Right f, Right h) -> return $ Right (h,f)
+
 create :: FilePath -> CreateParameters -> IO ()
 create filePath createParams
 	| size createParams == 0 = error "cannot create a 0-sized VHD"
