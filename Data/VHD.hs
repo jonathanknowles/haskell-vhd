@@ -13,6 +13,7 @@ import Data.VHD.Types
 import Data.VHD.Bat
 import Data.VHD.Block
 import Data.VHD.Utils
+import Data.VHD.Geometry
 import Data.VHD.CheckSum
 import Data.Bits
 import Data.Maybe
@@ -117,7 +118,7 @@ create' filePath createParams =
 			, footerCreatorHostOs      = CreatorHostOsWindows
 			, footerOriginalSize       = virtualSize
 			, footerCurrentSize        = virtualSize
-			, footerDiskGeometry       = DiskGeometry 1 1 1 -- c h s wrong
+			, footerDiskGeometry       = diskGeometry (virtualSize `div` fromIntegral sectorLength)
 			, footerDiskType           = DiskTypeDynamic
 			, footerCheckSum           = 0
 			, footerUniqueId           = fromJust $ uuid createParams
