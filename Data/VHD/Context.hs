@@ -15,6 +15,7 @@ import Data.Serialize (decode, encode)
 
 import qualified Data.ByteString as B
 import Data.ByteString.Char8 ()
+import Data.IORef
 
 import System.IO
 
@@ -27,6 +28,7 @@ data Context = Context
 	, ctxFooter    :: Footer
 	, ctxHandle    :: Handle
 	, ctxFilePath  :: FilePath
+	, ctxBModified :: IORef Bool
 	}
 
 withVhdContext file f = do
@@ -46,13 +48,18 @@ withVhdContext file f = do
 							else return Nothing
 			else return Nothing
 		batMmap file header footer mBatmapHdr $ \bat -> do
-			f $ Context
+			bmodified <- newIORef False
+			a <- f $ Context
 				{ ctxBatPtr    = bat
 				, ctxHeader    = header
 				, ctxFooter    = footer
 				, ctxHandle    = handle
 				, ctxFilePath  = file
+				, ctxBModified = bmodified
 				}
+			modified <- readIORef bmodified
+			when (modified) $ batUpdateChecksum bat
+			return a
 
 -- | create empty block at the end
 extendBlock ctx n = do
@@ -62,6 +69,7 @@ extendBlock ctx n = do
 	let (sector, m) = x `divMod` 512
 	unless (m == 0) $ error "wrong sector alignment"
 	batWrite (ctxBatPtr ctx) n (fromIntegral sector)
+	modifyIORef (ctxBModified ctx) (const True)
 
 	B.hPut (ctxHandle ctx) (B.replicate fullSize 0)
 
