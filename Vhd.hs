@@ -16,9 +16,9 @@ import qualified Data.ByteString as B
 
 showBlockSize i
 	| i < 1024     = printf "%d bytes" i
-	| i < (1024^2) = printf "%d kilobytes" (i`div`1024)
-	| i < (1024^3) = printf "%d megabytes" (i`div`(1024^2))
-	| otherwise    = printf "%d gigabytes" (i`div`(1024^3))
+	| i < (1024^2) = printf "%d kilobytes" (i `div` 1024)
+	| i < (1024^3) = printf "%d megabytes" (i `div` (1024^2))
+	| otherwise    = printf "%d gigabytes" (i `div` (1024^3))
 
 cmdCreate [name,size] = create name $ defaultCreateParameters { size = (read size) * 1024 * 1024, useBatmap = True }
 cmdCreate _           = error "usage: create <name> <size Mb>"
