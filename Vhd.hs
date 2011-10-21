@@ -16,12 +16,12 @@ import qualified Data.ByteString as B
 
 showBlockSize i
 	| i < 1024     = printf "%d bytes" i
-	| i < (1024^2) = printf "%d kilobytes" (i `div` 1024)
-	| i < (1024^3) = printf "%d megabytes" (i `div` (1024^2))
-	| otherwise    = printf "%d gigabytes" (i `div` (1024^3))
+	| i < (1024^2) = printf "%d KiB" (i `div` 1024)
+	| i < (1024^3) = printf "%d MiB" (i `div` (1024^2))
+	| otherwise    = printf "%d GiB" (i `div` (1024^3))
 
 cmdCreate [name, size] = create name $ defaultCreateParameters { size = (read size) * 1024 * 1024, useBatmap = True }
-cmdCreate _           = error "usage: create <name> <size Mb>"
+cmdCreate _            = error "usage: create <name> <size MiB>"
 
 cmdRead [file] = withVhdContext file $ \ctx -> do
 	let hdr = ctxHeader ctx
@@ -95,7 +95,7 @@ cmdConvert [fileRaw, fileVhd, size] = do
 
 		isBlockZero = B.all ((==) 0)
 		blockSize = 2 * 1024 * 1024
-cmdConvert _ = error "usage: convert <raw file> <vhd file> <size Mb>"
+cmdConvert _ = error "usage: convert <raw file> <vhd file> <size MiB>"
 
 main = do
 	args <- getArgs
