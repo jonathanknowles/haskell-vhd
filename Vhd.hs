@@ -51,7 +51,7 @@ cmdRead [file] = withVhdContext file $ \ctx -> do
 	batIterate (ctxBatPtr ctx) (fromIntegral $ headerMaxTableEntries hdr) $ \i n -> do
 		unless (n == 0xffffffff) $ modifyIORef allocated ((+) 1) >> printf "BAT[%.5x] = %08x\n" i n
 	nb <- readIORef allocated
-	putStrLn ("block allocated   : " ++ show nb ++ "/" ++ show (headerMaxTableEntries hdr))
+	putStrLn ("blocks allocated  : " ++ show nb ++ "/" ++ show (headerMaxTableEntries hdr))
 cmdRead _ = error "usage: read <file>"
 
 cmdPropGet [file, key] = withVhdContext file $ \ctx -> do
