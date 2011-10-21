@@ -87,7 +87,7 @@ newtype ParentUnicodeName    = ParentUnicodeName  String       deriving (Show, E
 newtype UniqueId             = UniqueId           B.ByteString deriving (Eq)
 
 instance Show UniqueId where
-	show (UniqueId b) = intercalate "-" $ map disp [[0..3], [4, 5], [6, 7], [8, 9], [10..15]]
+	show (UniqueId b) = intercalate "-" $ map disp [[0 .. 3], [4, 5], [6, 7], [8, 9], [10 .. 15]]
 		where disp = concatMap (printf "%02x" . B.index b)
 
 newtype ParentLocatorEntries = ParentLocatorEntries [ParentLocatorEntry] deriving (Show, Eq)
