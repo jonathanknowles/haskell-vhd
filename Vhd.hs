@@ -56,15 +56,15 @@ cmdRead _ = error "usage: read <file>"
 
 cmdPropGet [file, key] = withVhdContext file $ \ctx -> do
 	case map toLower key of
-		"max-table-entries"   -> putStrLn $ show $ headerMaxTableEntries $ ctxHeader ctx
-		"blocksize"           -> putStrLn $ show $ headerBlockSize $ ctxHeader ctx
-		"disk-type"           -> putStrLn $ show $ footerDiskType $ ctxFooter ctx
-		"current-size"        -> putStrLn $ show $ footerCurrentSize $ ctxFooter ctx
-		"uuid"                -> putStrLn $ show $ footerUniqueId $ ctxFooter ctx
-		"parent-uuid"         -> putStrLn $ show $ headerParentUniqueId $ ctxHeader ctx
-		"parent-timestamp"    -> putStrLn $ show $ headerParentTimeStamp $ ctxHeader ctx
+		"max-table-entries"   -> putStrLn $ show $ headerMaxTableEntries   $ ctxHeader ctx
+		"blocksize"           -> putStrLn $ show $ headerBlockSize         $ ctxHeader ctx
+		"disk-type"           -> putStrLn $ show $ footerDiskType          $ ctxFooter ctx
+		"current-size"        -> putStrLn $ show $ footerCurrentSize       $ ctxFooter ctx
+		"uuid"                -> putStrLn $ show $ footerUniqueId          $ ctxFooter ctx
+		"parent-uuid"         -> putStrLn $ show $ headerParentUniqueId    $ ctxHeader ctx
+		"parent-timestamp"    -> putStrLn $ show $ headerParentTimeStamp   $ ctxHeader ctx
 		"parent-filepath"     -> putStrLn $ show $ headerParentUnicodeName $ ctxHeader ctx
-		"timestamp"           -> putStrLn $ show $ footerTimeStamp $ ctxFooter ctx
+		"timestamp"           -> putStrLn $ show $ footerTimeStamp         $ ctxFooter ctx
 		_                     -> error "unknown key"
 cmdPropGet _ = error "usage: prop-get <file> <key>"
 
@@ -100,7 +100,7 @@ cmdConvert _ = error "usage: convert <raw file> <vhd file> <size Mb>"
 main = do
 	args <- getArgs
 	case args of
-		"create":xs   -> cmdCreate xs
-		"read":xs     -> cmdRead xs
-		"convert":xs  -> cmdConvert xs
+		"create"  :xs -> cmdCreate  xs
+		"read"    :xs -> cmdRead    xs
+		"convert" :xs -> cmdConvert xs
 		"prop-get":xs -> cmdPropGet xs

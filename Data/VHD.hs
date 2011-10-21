@@ -71,7 +71,7 @@ create filePath createParams
 	| size createParams == 0 = error "cannot create a 0-sized VHD"
 	| otherwise              = do
 		nowUnixEpoch <- fromIntegral . fromEnum <$> getPOSIXTime
-		let nowVhdEpoch   = fromIntegral (nowUnixEpoch - y2k)
+		let nowVhdEpoch = fromIntegral (nowUnixEpoch - y2k)
 		uniqueid <- randomUniqueId
 		create' filePath $ createParams
 			{ uuid      = Just $ maybe uniqueid id $ uuid createParams
