@@ -105,7 +105,7 @@ create' filePath createParams =
 		batSize         = (maxTableEntries * 4) `roundUpToModulo` sectorLength
 		batPadSize      = batSize - maxTableEntries * 4
 		footerSize      = 512
-		headerSize      = 1024 -- actually 1020
+		headerSize      = 1024
 
 		footer = adjustFooterChecksum $ Footer
 			{ footerCookie             = cookie "conectix"
