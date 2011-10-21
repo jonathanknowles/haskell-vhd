@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Data.VHD
 	( create
-	, CreateParameters(..)
+	, CreateParameters (..)
 	, defaultCreateParameters
 	, getInfo
 	-- * block related operations
@@ -10,7 +10,7 @@ module Data.VHD
 	, writeBlock
 	, withBlock
 	-- * ctx related operations
-	, Context(..)
+	, Context (..)
 	, withVhdContext
 	, extendBlock
 	-- * exported Types

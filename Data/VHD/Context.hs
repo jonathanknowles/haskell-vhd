@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Data.VHD.Context
-	( Context(..)
+	( Context (..)
 	, withVhdContext
 	, extendBlock
 	) where

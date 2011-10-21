@@ -1,5 +1,5 @@
 module Data.VHD.Bat
-	( Bat(..)
+	( Bat (..)
 	, batGetSize
 	, batRead
 	, batWrite
