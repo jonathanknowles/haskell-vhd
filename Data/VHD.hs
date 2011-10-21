@@ -45,7 +45,7 @@ data CreateParameters = CreateParameters
 	, timeStamp :: Maybe TimeStamp
 	, uuid      :: Maybe UniqueId
 	, useBatmap :: Bool
-	} deriving (Show,Eq)
+	} deriving (Show, Eq)
 
 defaultCreateParameters = CreateParameters
 	{ blockSize = 2 * 1024 * 1024
@@ -63,7 +63,7 @@ getInfo filePath = withFile filePath ReadMode $ \handle -> do
 	case (footer, header) of
 		(Left err, _)      -> return $ Left err
 		(_, Left err)      -> return $ Left err
-		(Right f, Right h) -> return $ Right (h,f)
+		(Right f, Right h) -> return $ Right (h, f)
 
 -- | create an empty vhd with the specified parameters
 create :: FilePath -> CreateParameters -> IO ()

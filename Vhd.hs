@@ -20,13 +20,13 @@ showBlockSize i
 	| i < (1024^3) = printf "%d megabytes" (i `div` (1024^2))
 	| otherwise    = printf "%d gigabytes" (i `div` (1024^3))
 
-cmdCreate [name,size] = create name $ defaultCreateParameters { size = (read size) * 1024 * 1024, useBatmap = True }
+cmdCreate [name, size] = create name $ defaultCreateParameters { size = (read size) * 1024 * 1024, useBatmap = True }
 cmdCreate _           = error "usage: create <name> <size Mb>"
 
 cmdRead [file] = withVhdContext file $ \ctx -> do
 	let hdr = ctxHeader ctx
 	let ftr = ctxFooter ctx
-	mapM_ (\(f,s) -> putStrLn (f ++ " : " ++ s))
+	mapM_ (\(f, s) -> putStrLn (f ++ " : " ++ s))
 		[ ("cookie           ", show $ headerCookie hdr)
 		, ("version          ", show $ headerVersion hdr)
 		, ("max-table-entries", show $ headerMaxTableEntries hdr)
@@ -37,7 +37,7 @@ cmdRead [file] = withVhdContext file $ \ctx -> do
 		, ("parent-filepath  ", show $ headerParentUnicodeName hdr)
 		, ("parent-timestamp ", show $ headerParentTimeStamp hdr)
 		]
-	mapM_ (\(f,s) -> putStrLn (f ++ " : " ++ s))
+	mapM_ (\(f, s) -> putStrLn (f ++ " : " ++ s))
 		[ ("disk-geometry    ", show $ footerDiskGeometry ftr)
 		, ("original-size    ", showBlockSize $ footerOriginalSize ftr)
 		, ("current-size     ", showBlockSize $ footerOriginalSize ftr)
@@ -68,7 +68,7 @@ cmdPropGet [file, key] = withVhdContext file $ \ctx -> do
 		_                     -> error "unknown key"
 cmdPropGet _ = error "usage: prop-get <file> <key>"
 
-cmdConvert [fileRaw,fileVhd,size] = do
+cmdConvert [fileRaw, fileVhd, size] = do
 	create fileVhd $ defaultCreateParameters
 		{ size = read size * 1024 * 1024
 		, useBatmap = True

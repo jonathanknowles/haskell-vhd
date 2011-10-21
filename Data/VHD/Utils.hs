@@ -8,7 +8,7 @@ import Control.Monad (unless)
 import System.IO
 import qualified Data.ByteString as B
 
-divRoundUp a b = let (d,m) = a `divMod` b in d + if m > 0 then 1 else 0
+divRoundUp a b = let (d, m) = a `divMod` b in d + if m > 0 then 1 else 0
 
 roundUpToModulo n m
 	| n `mod` m == 0 = n

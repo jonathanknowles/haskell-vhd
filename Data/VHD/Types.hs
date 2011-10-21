@@ -23,7 +23,7 @@ data Header = Header
 	, headerReserved1            :: B.ByteString
 	, headerParentUnicodeName    :: ParentUnicodeName
 	, headerParentLocatorEntries :: ParentLocatorEntries
-	} deriving (Show,Eq)
+	} deriving (Show, Eq)
 
 data Footer = Footer
 	{ footerCookie             :: Cookie
@@ -41,7 +41,7 @@ data Footer = Footer
 	, footerCheckSum           :: CheckSum
 	, footerUniqueId           :: UniqueId
 	, footerIsSavedState       :: Bool
-	} deriving (Show,Eq)
+	} deriving (Show, Eq)
 
 data BatmapHeader = BatmapHeader
 	{ batmapHeaderCookie       :: Cookie
@@ -49,7 +49,7 @@ data BatmapHeader = BatmapHeader
 	, batmapHeaderSize         :: Word32
 	, batmapHeaderVersion      :: Version
 	, batmapHeaderCheckSum     :: CheckSum
-	} deriving (Show,Eq)
+	} deriving (Show, Eq)
 
 type BlockSize                   = Word32
 type DiskGeometryCylinders       = Word16
@@ -61,36 +61,36 @@ type Offset                      = Word64
 type Size                        = Word64
 type TimeStamp                   = Word32
 
-data Version      = Version VersionMajor VersionMinor deriving (Show,Eq)
+data Version      = Version VersionMajor VersionMinor deriving (Show, Eq)
 type VersionMajor = Word16
 type VersionMinor = Word16
 
 data CreatorHostOs
 	= CreatorHostOsUnknown
 	| CreatorHostOsWindows
-	| CreatorHostOsMacintosh deriving (Show,Eq)
+	| CreatorHostOsMacintosh deriving (Show, Eq)
 
 data DiskGeometry = DiskGeometry
 	DiskGeometryCylinders
 	DiskGeometryHeads
-	DiskGeometrySectorsPerTrack deriving (Show,Eq)
+	DiskGeometrySectorsPerTrack deriving (Show, Eq)
 
 data DiskType
 	= DiskTypeFixed
 	| DiskTypeDynamic
-	| DiskTypeDifferencing deriving (Show,Eq)
+	| DiskTypeDifferencing deriving (Show, Eq)
 
-newtype Cookie               = Cookie             B.ByteString deriving (Show,Eq)
-newtype CreatorApplication   = CreatorApplication B.ByteString deriving (Show,Eq)
-newtype ParentLocatorEntry   = ParentLocatorEntry B.ByteString deriving (Show,Eq)
-newtype ParentUnicodeName    = ParentUnicodeName  String       deriving (Show,Eq)
+newtype Cookie               = Cookie             B.ByteString deriving (Show, Eq)
+newtype CreatorApplication   = CreatorApplication B.ByteString deriving (Show, Eq)
+newtype ParentLocatorEntry   = ParentLocatorEntry B.ByteString deriving (Show, Eq)
+newtype ParentUnicodeName    = ParentUnicodeName  String       deriving (Show, Eq)
 newtype UniqueId             = UniqueId           B.ByteString deriving (Eq)
 
 instance Show UniqueId where
-	show (UniqueId b) = intercalate "-" $ map disp [[0..3],[4,5],[6,7],[8,9],[10..15]]
+	show (UniqueId b) = intercalate "-" $ map disp [[0..3], [4, 5], [6, 7], [8, 9], [10..15]]
 		where disp = concatMap (printf "%02x" . B.index b)
 
-newtype ParentLocatorEntries = ParentLocatorEntries [ParentLocatorEntry] deriving (Show,Eq)
+newtype ParentLocatorEntries = ParentLocatorEntries [ParentLocatorEntry] deriving (Show, Eq)
 
 cookie               c = assert (B.length c ==   8) $ Cookie               c
 creatorApplication   a = assert (B.length a ==   4) $ CreatorApplication   a
