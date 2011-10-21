@@ -138,6 +138,3 @@ create' filePath createParams =
 			, headerParentUnicodeName    = parentUnicodeName ""
 			, headerParentLocatorEntries = parentLocatorEntries $ replicate 8 (ParentLocatorEntry $ B.replicate 24 0)
 			}
-
-readDynamicDiskInfoFromFile :: FilePath -> IO (Either String DynamicDiskInfo)
-readDynamicDiskInfoFromFile f = return . decodeLazy =<< BL.readFile f
