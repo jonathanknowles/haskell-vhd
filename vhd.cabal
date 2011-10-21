@@ -15,7 +15,7 @@ Cabal-version:       >=1.6
 Data-files:          README
 
 Flag test
-  Description:       Build unit test
+  Description:       Build unit tests
   Default:           False
 
 Flag executable
