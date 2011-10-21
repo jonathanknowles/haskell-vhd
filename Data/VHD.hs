@@ -22,19 +22,6 @@ import Data.Time.Clock.POSIX
 
 import System.IO
 
-data DynamicDiskInfo = DynamicDiskInfo
-	{ footer :: ! Footer
-	, header :: ! Header
-	} deriving (Show,Eq)
-
-instance Serialize DynamicDiskInfo where
-	get = DynamicDiskInfo
-		<$> get
-		<*> get
-	put d = do
-		put $ footer d
-		put $ header d
-
 data CreateParameters = CreateParameters
 	{ blockSize :: BlockSize
 	, size      :: Size
@@ -80,7 +67,8 @@ create filePath createParams
 create' :: FilePath -> CreateParameters -> IO ()
 create' filePath createParams =
 	withFile filePath WriteMode $ \handle -> do
-		B.hPut handle $ encode (DynamicDiskInfo footer header)
+		B.hPut handle $ encode footer
+		B.hPut handle $ encode header
 		hAlign handle (fromIntegral sectorLength)
 		-- create a BAT with every entry initialized to 0xffffffff.
 		B.hPut handle $ B.replicate (fromIntegral batSize) 0xff
