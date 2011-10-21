@@ -1,16 +1,12 @@
 module Data.VHD.Block
 	( Block
 	, Sector
+	, bitmapSizeOfBlock
+	, bitmapOfBlock
 	, withBlock
 	, readBlock
 	, writeBlock
-	, bitmapSizeOfBlock
-	, bitmapOfBlock
 	, sectorLength
-	, Bitmap (..)
-	, bitmapGet
-	, bitmapSet
-	, bitmapClear
 	) where
 
 import Foreign.Ptr
@@ -21,6 +17,7 @@ import Data.Bits
 import Data.VHD.Utils
 import Data.VHD.Types
 import Data.VHD.Bat
+import Data.VHD.Bitmap
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
@@ -32,7 +29,6 @@ import Control.Monad
 import System.IO.MMap
 
 data Block = Block BlockSize (Ptr Word8)
-data Bitmap = Bitmap (Ptr Word8)
 data Sector = Sector (Ptr Word8)
 
 sectorLength :: Word32
@@ -85,27 +81,3 @@ writeBlock block content offset = do
 		dataPtr     = dataOfBlock block
 		sectorStart = fromIntegral offset `div` sectorLength
 		sectorEnd   = fromIntegral (offset + B.length content) `div` sectorLength
-
-bitmapGet :: Bitmap -> Int -> IO Bool
-bitmapGet (Bitmap ptr) n = test `fmap` peekByteOff ptr offset
-	where
-		test :: Word8 -> Bool
-		test = flip testBit (7-bit)
-		(offset, bit) = n `divMod` 8
-
-bitmapModify :: Bitmap -> Int -> (Int -> Word8 -> Word8) -> IO ()
-bitmapModify (Bitmap bptr) n f = peek ptr >>= poke ptr . f (7-bit)
-	where
-		ptr = bptr `plusPtr` offset
-		(offset, bit) = n `divMod` 8
-
-bitmapSet :: Bitmap -> Int -> IO ()
-bitmapSet bitmap n = bitmapModify bitmap n (flip setBit)
-
-bitmapSetRange :: Bitmap -> Int -> Int -> IO ()
-bitmapSetRange bitmap start end
-	| start < end = bitmapSet bitmap start >> bitmapSetRange bitmap (start + 1) end
-	| otherwise   = return ()
-
-bitmapClear :: Bitmap -> Int -> IO ()
-bitmapClear bitmap n = bitmapModify bitmap n (flip clearBit)
