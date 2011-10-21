@@ -23,6 +23,9 @@ showBlockSize i
 cmdCreate [name, size] = create name $ defaultCreateParameters { size = (read size) * 1024 * 1024, useBatmap = True }
 cmdCreate _            = error "usage: create <name> <size MiB>"
 
+showChecksum checksum isValid =
+	printf "%08x (%s)" checksum (if isValid then "valid" else "invalid")
+
 cmdRead [file] = withVhdContext file $ \ctx -> do
 	let hdr = ctxHeader ctx
 	let ftr = ctxFooter ctx
@@ -31,8 +34,7 @@ cmdRead [file] = withVhdContext file $ \ctx -> do
 		, ("version          ", show $ headerVersion hdr)
 		, ("max-table-entries", show $ headerMaxTableEntries hdr)
 		, ("block-size       ", showBlockSize $ headerBlockSize hdr)
-		, ("header-checksum  ", printf "%08x (%s)" (headerChecksum hdr)
-		                                           (if verifyHeaderChecksum hdr then "valid" else "invalid"))
+		, ("header-checksum  ", showChecksum (headerChecksum hdr) (verifyHeaderChecksum hdr))
 		, ("parent-uuid      ", show $ headerParentUniqueId hdr)
 		, ("parent-filepath  ", show $ headerParentUnicodeName hdr)
 		, ("parent-timestamp ", show $ headerParentTimeStamp hdr)
@@ -42,8 +44,7 @@ cmdRead [file] = withVhdContext file $ \ctx -> do
 		, ("original-size    ", showBlockSize $ footerOriginalSize ftr)
 		, ("current-size     ", showBlockSize $ footerOriginalSize ftr)
 		, ("type             ", show $ footerDiskType ftr)
-		, ("footer-checksum  ", printf "%08x (%s)" (footerChecksum ftr)
-		                                           (if verifyFooterChecksum ftr then "valid" else "invalid"))
+		, ("footer-checksum  ", showChecksum (footerChecksum ftr) (verifyFooterChecksum ftr))
 		, ("uuid             ", show $ footerUniqueId ftr)
 		, ("timestamp        ", show $ footerTimeStamp ftr)
 		]
