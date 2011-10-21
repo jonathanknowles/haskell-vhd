@@ -1,5 +1,21 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Data.VHD where
+module Data.VHD
+	( create
+	, CreateParameters(..)
+	, defaultCreateParameters
+	, getInfo
+	-- * block related operations
+	, Block
+	, readBlock
+	, writeBlock
+	, withBlock
+	-- * ctx related operations
+	, Context(..)
+	, withVhdContext
+	, extendBlock
+	-- * exported Types
+	, module Data.VHD.Types
+	) where
 
 import Control.Applicative
 import Control.Exception
@@ -12,6 +28,7 @@ import Data.VHD.Serialize
 import Data.VHD.Types
 import Data.VHD.Bat
 import Data.VHD.Block
+import Data.VHD.Context
 import Data.VHD.Utils
 import Data.VHD.Geometry
 import Data.VHD.CheckSum
