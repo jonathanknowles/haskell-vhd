@@ -31,7 +31,7 @@ import Data.VHD.Block
 import Data.VHD.Context
 import Data.VHD.Utils
 import Data.VHD.Geometry
-import Data.VHD.CheckSum
+import Data.VHD.Checksum
 import Data.Bits
 import Data.Maybe
 import Data.Word
@@ -99,7 +99,7 @@ create' filePath createParams =
 				, batmapHeaderOffset   = fromIntegral (headerPos + fromIntegral sectorLength)
 				, batmapHeaderSize     = (maxTableEntries `div` 8) `divRoundUp` sectorLength
 				, batmapHeaderVersion  = Version 1 2
-				, batmapHeaderCheckSum = 0xffffffff
+				, batmapHeaderChecksum = 0xffffffff
 				}
 			hAlign handle (fromIntegral sectorLength)
 			B.hPut handle $ B.replicate (fromIntegral (maxTableEntries `div` 8)) 0x0
@@ -127,7 +127,7 @@ create' filePath createParams =
 			, footerCurrentSize        = virtualSize
 			, footerDiskGeometry       = diskGeometry (virtualSize `div` fromIntegral sectorLength)
 			, footerDiskType           = DiskTypeDynamic
-			, footerCheckSum           = 0
+			, footerChecksum           = 0
 			, footerUniqueId           = fromJust $ uuid createParams
 			, footerIsSavedState       = False
 			}
@@ -138,7 +138,7 @@ create' filePath createParams =
 			, headerVersion              = Version 1 0
 			, headerMaxTableEntries      = maxTableEntries
 			, headerBlockSize            = blockSize createParams
-			, headerCheckSum             = 0
+			, headerChecksum             = 0
 			, headerParentUniqueId       = uniqueId $ B.replicate 16 0
 			, headerParentTimeStamp      = 0
 			, headerReserved1            = B.replicate 4 0

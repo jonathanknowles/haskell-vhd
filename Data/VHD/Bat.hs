@@ -30,7 +30,7 @@ sectorLength = 512
 
 batmapSet n (Batmap bitmap _) = bitmapSet bitmap n
 
-batmapChecksum :: Batmap -> IO CheckSum
+batmapChecksum :: Batmap -> IO Checksum
 batmapChecksum (Batmap (Bitmap p) sz) = complement `fmap` foldM addByte 0 [0 .. (sz - 1)]
 	where addByte acc i = (p `peekElemOff` i) >>= \w -> return (acc + fromIntegral w)
 
@@ -71,6 +71,6 @@ batIterate bat nb f = forM_ [0 .. (nb - 1)] (\i -> batRead bat i >>= \n -> f i n
 batUpdateChecksum :: Bat -> IO ()
 batUpdateChecksum (Bat _ _        Nothing)       = return ()
 batUpdateChecksum (Bat _ endptr   (Just batmap)) = do
-	let batmapCheckSumPtr = endptr `plusPtr` (8+8+4+4)
-	checkSum <- batmapChecksum batmap
-	pokeBE batmapCheckSumPtr checkSum
+	let batmapChecksumPtr = endptr `plusPtr` (8+8+4+4)
+	checksum <- batmapChecksum batmap
+	pokeBE batmapChecksumPtr checksum

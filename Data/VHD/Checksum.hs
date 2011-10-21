@@ -1,4 +1,4 @@
-module Data.VHD.CheckSum
+module Data.VHD.Checksum
 	( adjustFooterChecksum
 	, adjustHeaderChecksum
 	, verifyFooterChecksum
@@ -14,30 +14,30 @@ import Data.Serialize
 
 import qualified Data.ByteString as B
 
-plus :: CheckSum -> Word8 -> CheckSum
+plus :: Checksum -> Word8 -> Checksum
 plus a b = a + fromIntegral b
 
-getHeaderChecksum :: Header -> CheckSum
+getHeaderChecksum :: Header -> Checksum
 getHeaderChecksum header = complement $ B.foldl' plus 0 headerData
 	where
-		headerData = encode $ header { headerCheckSum = 0 }
+		headerData = encode $ header { headerChecksum = 0 }
 
-getFooterChecksum :: Footer -> CheckSum
+getFooterChecksum :: Footer -> Checksum
 getFooterChecksum footer = complement $ B.foldl' plus 0 footerData
-	where footerData = encode $ footer { footerCheckSum = 0 }
+	where footerData = encode $ footer { footerChecksum = 0 }
 
 adjustFooterChecksum :: Footer -> Footer
-adjustFooterChecksum f = f { footerCheckSum = checksum }
+adjustFooterChecksum f = f { footerChecksum = checksum }
 	where checksum = getFooterChecksum f
 
 adjustHeaderChecksum :: Header -> Header
-adjustHeaderChecksum h = h { headerCheckSum = checksum }
+adjustHeaderChecksum h = h { headerChecksum = checksum }
 	where checksum = getHeaderChecksum h
 
 verifyFooterChecksum :: Footer -> Bool
-verifyFooterChecksum f = footerCheckSum f == checksum
+verifyFooterChecksum f = footerChecksum f == checksum
 	where checksum = getFooterChecksum f
 
 verifyHeaderChecksum :: Header -> Bool
-verifyHeaderChecksum h = headerCheckSum h == checksum
+verifyHeaderChecksum h = headerChecksum h == checksum
 	where checksum = getHeaderChecksum h

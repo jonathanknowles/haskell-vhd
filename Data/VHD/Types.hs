@@ -17,7 +17,7 @@ data Header = Header
 	, headerVersion              :: Version
 	, headerMaxTableEntries      :: EntryCount
 	, headerBlockSize            :: BlockSize
-	, headerCheckSum             :: CheckSum
+	, headerChecksum             :: Checksum
 	, headerParentUniqueId       :: UniqueId
 	, headerParentTimeStamp      :: TimeStamp
 	, headerReserved1            :: B.ByteString
@@ -38,7 +38,7 @@ data Footer = Footer
 	, footerCurrentSize        :: Size
 	, footerDiskGeometry       :: DiskGeometry
 	, footerDiskType           :: DiskType
-	, footerCheckSum           :: CheckSum
+	, footerChecksum           :: Checksum
 	, footerUniqueId           :: UniqueId
 	, footerIsSavedState       :: Bool
 	} deriving (Show, Eq)
@@ -48,14 +48,14 @@ data BatmapHeader = BatmapHeader
 	, batmapHeaderOffset       :: Offset
 	, batmapHeaderSize         :: Word32
 	, batmapHeaderVersion      :: Version
-	, batmapHeaderCheckSum     :: CheckSum
+	, batmapHeaderChecksum     :: Checksum
 	} deriving (Show, Eq)
 
 type BlockSize                   = Word32
 type DiskGeometryCylinders       = Word16
 type DiskGeometryHeads           = Word8
 type DiskGeometrySectorsPerTrack = Word8
-type CheckSum                    = Word32
+type Checksum                    = Word32
 type EntryCount                  = Word32
 type Offset                      = Word64
 type Size                        = Word64

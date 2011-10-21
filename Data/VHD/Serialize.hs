@@ -21,7 +21,7 @@ instance Serialize Header where
 		<*> getVersion
 		<*> getMaxTableEntries
 		<*> getBlockSize
-		<*> getCheckSum
+		<*> getChecksum
 		<*> getParentUniqueId
 		<*> getParentTimeStamp
 		<*> getByteString 4
@@ -35,7 +35,7 @@ instance Serialize Header where
 		putVersion              $ headerVersion              h
 		putMaxTableEntries      $ headerMaxTableEntries      h
 		putBlockSize            $ headerBlockSize            h
-		putCheckSum             $ headerCheckSum             h
+		putChecksum             $ headerChecksum             h
 		putParentUniqueId       $ headerParentUniqueId       h
 		putParentTimeStamp      $ headerParentTimeStamp      h
 		putByteString           $ headerReserved1            h
@@ -57,7 +57,7 @@ instance Serialize Footer where
 		<*> getCurrentSize
 		<*> getDiskGeometry
 		<*> getDiskType
-		<*> getCheckSum
+		<*> getChecksum
 		<*> getUniqueId
 		<*> getIsSavedState
 		<*  getFooterPadding
@@ -74,7 +74,7 @@ instance Serialize Footer where
 		putCurrentSize        $ footerCurrentSize        f
 		putDiskGeometry       $ footerDiskGeometry       f
 		putDiskType           $ footerDiskType           f
-		putCheckSum           $ footerCheckSum           f
+		putChecksum           $ footerChecksum           f
 		putUniqueId           $ footerUniqueId           f
 		putIsSavedState       $ footerIsSavedState       f
 		putFooterPadding
@@ -85,13 +85,13 @@ instance Serialize BatmapHeader where
 		<*> getDataOffset
 		<*> getWord32be
 		<*> getVersion
-		<*> getCheckSum
+		<*> getChecksum
 	put b = do
 		putCookie     $ batmapHeaderCookie   b
 		putDataOffset $ batmapHeaderOffset   b
 		putWord32be   $ batmapHeaderSize     b
 		putVersion    $ batmapHeaderVersion  b
-		putCheckSum   $ batmapHeaderCheckSum b
+		putChecksum   $ batmapHeaderChecksum b
 
 footerPaddingLength = 427
 getFooterPadding = getByteString footerPaddingLength
@@ -106,8 +106,8 @@ putCookie (Cookie c) = putByteString c
 
 getBlockSize       = getWord32be
 putBlockSize       = putWord32be
-getCheckSum        = getWord32be
-putCheckSum        = putWord32be
+getChecksum        = getWord32be
+putChecksum        = putWord32be
 getCurrentSize     = getWord64be
 putCurrentSize     = putWord64be
 getDataOffset      = getWord64be

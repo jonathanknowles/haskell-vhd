@@ -3,7 +3,7 @@ import Data.VHD.Types
 import Data.VHD.Block
 import Data.VHD.Context
 import Data.VHD.Bat
-import Data.VHD.CheckSum
+import Data.VHD.Checksum
 import System.Environment (getArgs)
 import System.IO
 import Text.Printf
@@ -31,7 +31,7 @@ cmdRead [file] = withVhdContext file $ \ctx -> do
 		, ("version          ", show $ headerVersion hdr)
 		, ("max-table-entries", show $ headerMaxTableEntries hdr)
 		, ("block-size       ", showBlockSize $ headerBlockSize hdr)
-		, ("header-checksum  ", printf "%08x (%s)" (headerCheckSum hdr)
+		, ("header-checksum  ", printf "%08x (%s)" (headerChecksum hdr)
 		                                           (if verifyHeaderChecksum hdr then "valid" else "invalid"))
 		, ("parent-uuid      ", show $ headerParentUniqueId hdr)
 		, ("parent-filepath  ", show $ headerParentUnicodeName hdr)
@@ -42,7 +42,7 @@ cmdRead [file] = withVhdContext file $ \ctx -> do
 		, ("original-size    ", showBlockSize $ footerOriginalSize ftr)
 		, ("current-size     ", showBlockSize $ footerOriginalSize ftr)
 		, ("type             ", show $ footerDiskType ftr)
-		, ("footer-checksum  ", printf "%08x (%s)" (footerCheckSum ftr)
+		, ("footer-checksum  ", printf "%08x (%s)" (footerChecksum ftr)
 		                                           (if verifyFooterChecksum ftr then "valid" else "invalid"))
 		, ("uuid             ", show $ footerUniqueId ftr)
 		, ("timestamp        ", show $ footerTimeStamp ftr)

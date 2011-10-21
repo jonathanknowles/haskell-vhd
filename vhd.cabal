@@ -35,7 +35,7 @@ Library
   Other-modules:     Data.VHD.Bat
                      Data.VHD.Bitmap
                      Data.VHD.Block
-                     Data.VHD.CheckSum
+                     Data.VHD.Checksum
                      Data.VHD.Context
                      Data.VHD.Geometry
                      Data.VHD.Serialize
