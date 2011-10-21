@@ -1,6 +1,8 @@
 Name:                vhd
 Version:             0.1
-Author:              Jonathan Knowles
+Synopsis:            Implementation of the Virtual Hard Disk (VHD) disk format
+Description:         Provide a toolbox of function to manipulate VHD files.
+Author:              Jonathan Knowles, Vincent Hanquez
 Maintainer:          jonathan.knowles@eu.citrix.com
 Copyright:           Citrix Systems Inc.
 License:             BSD3
@@ -30,6 +32,15 @@ Library
                    , random
                    , storable-endian
   Exposed-modules:   Data.VHD
+  Other-modules:     Data.VHD.Bat
+                     Data.VHD.Bitmap
+                     Data.VHD.Block
+                     Data.VHD.CheckSum
+                     Data.VHD.Context
+                     Data.VHD.Geometry
+                     Data.VHD.Serialize
+                     Data.VHD.Types
+                     Data.VHD.Utils
 
 Executable           Tests
   Main-Is:           Tests.hs
