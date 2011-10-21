@@ -30,6 +30,15 @@ Library
                    , random
                    , storable-endian
   Exposed-modules:   Data.VHD
+  Other-modules:     Data.VHD.Bat
+                     Data.VHD.Bitmap
+                     Data.VHD.Block
+                     Data.VHD.CheckSum
+                     Data.VHD.Context
+                     Data.VHD.Geometry
+                     Data.VHD.Serialize
+                     Data.VHD.Types
+                     Data.VHD.Utils
 
 Executable           Tests
   Main-Is:           Tests.hs
