@@ -1,5 +1,7 @@
 Name:                vhd
 Version:             0.1
+Synopsis:            Implementation of the Virtual Hard Disk (VHD) disk format
+Description:         Provide a toolbox of function to manipulate VHD files.
 Author:              Jonathan Knowles, Vincent Hanquez
 Maintainer:          jonathan.knowles@eu.citrix.com
 Copyright:           Citrix Systems Inc.
