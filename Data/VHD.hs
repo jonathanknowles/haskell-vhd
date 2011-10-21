@@ -51,6 +51,7 @@ defaultCreateParameters = CreateParameters
 	, useBatmap = False
 	}
 
+-- | grab the header and footer from a vhd file.
 getInfo :: FilePath -> IO (Either String (Header, Footer))
 getInfo filePath = withFile filePath ReadMode $ \handle -> do
 	footer <- decode <$> B.hGet handle 512
@@ -60,6 +61,7 @@ getInfo filePath = withFile filePath ReadMode $ \handle -> do
 		(_, Left err)      -> return $ Left err
 		(Right f, Right h) -> return $ Right (h,f)
 
+-- | create an empty vhd with the specified parameters
 create :: FilePath -> CreateParameters -> IO ()
 create filePath createParams
 	| size createParams == 0 = error "cannot create a 0-sized VHD"
