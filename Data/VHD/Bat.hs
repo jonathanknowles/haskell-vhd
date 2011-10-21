@@ -31,7 +31,7 @@ sectorLength = 512
 batmapSet n (Batmap bitmap _) = bitmapSet bitmap n
 
 batmapChecksum :: Batmap -> IO CheckSum
-batmapChecksum (Batmap (Bitmap p) sz) = complement `fmap` foldM addByte 0 [0..(sz-1)]
+batmapChecksum (Batmap (Bitmap p) sz) = complement `fmap` foldM addByte 0 [0..(sz - 1)]
 	where addByte acc i = (p `peekElemOff` i) >>= \w -> return (acc + fromIntegral w)
 
 -- | returns the padded size of a BAT
@@ -65,7 +65,7 @@ batMmap file header footer batmapHeader f =
 		batmapSize       = maybe 0 (fromIntegral . (* sectorLength) . batmapHeaderSize) batmapHeader
 
 batIterate :: Bat -> Int -> (Int -> Word32 -> IO ()) -> IO ()
-batIterate bat nb f = forM_ [0..(nb-1)] (\i -> batRead bat i >>= \n -> f i n)
+batIterate bat nb f = forM_ [0..(nb - 1)] (\i -> batRead bat i >>= \n -> f i n)
 
 -- | update checksum in the batmap if the batmap exists
 batUpdateChecksum :: Bat -> IO ()

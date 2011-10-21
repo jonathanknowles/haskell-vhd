@@ -17,11 +17,11 @@ bitmapGet :: Bitmap -> Int -> IO Bool
 bitmapGet (Bitmap ptr) n = test `fmap` peekByteOff ptr offset
 	where
 		test :: Word8 -> Bool
-		test = flip testBit (7-bit)
+		test = flip testBit (7 - bit)
 		(offset, bit) = n `divMod` 8
 
 bitmapModify :: Bitmap -> Int -> (Int -> Word8 -> Word8) -> IO ()
-bitmapModify (Bitmap bptr) n f = peek ptr >>= poke ptr . f (7-bit)
+bitmapModify (Bitmap bptr) n f = peek ptr >>= poke ptr . f (7 - bit)
 	where
 		ptr = bptr `plusPtr` offset
 		(offset, bit) = n `divMod` 8
