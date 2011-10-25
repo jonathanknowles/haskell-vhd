@@ -63,6 +63,7 @@ withVhdContext file f = do
 			return a
 
 -- | create empty block at the end
+extendBlock :: Context -> Int -> IO ()
 extendBlock ctx n = do
 	hSeek (ctxHandle ctx) SeekFromEnd 512
 	x <- hTell (ctxHandle ctx)
