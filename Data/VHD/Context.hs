@@ -31,6 +31,7 @@ data Context = Context
 	, ctxBModified :: IORef Bool
 	}
 
+withVhdContext :: FilePath -> (Context -> IO a) -> IO a
 withVhdContext file f = do
 	withFile file ReadWriteMode $ \handle -> do
 		footer <- either error id . decode <$> B.hGet handle 512
