@@ -145,3 +145,11 @@ create' filePath createParams =
 			, headerParentUnicodeName    = parentUnicodeName ""
 			, headerParentLocatorEntries = parentLocatorEntries $ replicate 8 (ParentLocatorEntry $ B.replicate 24 0)
 			}
+
+-- | Reads raw data from a VHD.
+read :: Context -> Word64 -> Int -> IO B.ByteString
+read context byteOffset length = undefined
+
+-- | Writes raw data to a VHD.
+write :: Context -> Word64 -> B.ByteString -> IO ()
+write context byteOffset rawData = undefined
