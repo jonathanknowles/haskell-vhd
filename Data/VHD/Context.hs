@@ -29,11 +29,12 @@ data Context = Context
 	, ctxHandle    :: Handle
 	, ctxFilePath  :: FilePath
 	, ctxBModified :: IORef Bool
+	, ctxParent    :: Maybe Context
 	}
 
 withVhdContext :: FilePath -> (Context -> IO a) -> IO a
-withVhdContext file f = do
-	withFile file ReadWriteMode $ \handle -> do
+withVhdContext filePath f = do
+	withFile filePath ReadWriteMode $ \handle -> do
 		footer <- either error id . decode <$> B.hGet handle 512
 		header <- either error id . decode <$> B.hGet handle 1024
 		mBatmapHdr <- if footerCreatorVersion footer == Version 1 3
@@ -48,19 +49,27 @@ withVhdContext file f = do
 							then return $ Just bHdr
 							else return Nothing
 			else return Nothing
-		batMmap file header footer mBatmapHdr $ \bat -> do
-			bmodified <- newIORef False
-			a <- f $ Context
-				{ ctxBatPtr    = bat
-				, ctxHeader    = header
-				, ctxFooter    = footer
-				, ctxHandle    = handle
-				, ctxFilePath  = file
-				, ctxBModified = bmodified
-				}
-			modified <- readIORef bmodified
-			when (modified) $ batUpdateChecksum bat
-			return a
+		let buildContext parent =
+			batMmap filePath header footer mBatmapHdr $ \bat -> do
+				bmodified <- newIORef False
+				a <- f $ Context
+					{ ctxBatPtr    = bat
+					, ctxHeader    = header
+					, ctxFooter    = footer
+					, ctxHandle    = handle
+					, ctxFilePath  = filePath
+					, ctxBModified = bmodified
+					, ctxParent    = parent
+					}
+				modified <- readIORef bmodified
+				when (modified) $ batUpdateChecksum bat
+				return a
+		if footerDiskType footer == DiskTypeDifferencing
+			then do
+				let ParentUnicodeName parentFilePath = headerParentUnicodeName header
+				withVhdContext parentFilePath $ \parent -> buildContext $ Just parent
+			else
+				buildContext Nothing
 
 -- | create empty block at the end
 appendEmptyBlock :: Context -> Int -> IO ()
