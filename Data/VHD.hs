@@ -12,7 +12,7 @@ module Data.VHD
 	-- * ctx related operations
 	, Context (..)
 	, withVhdContext
-	, extendBlock
+	, appendEmptyBlock
 	-- * exported Types
 	, module Data.VHD.Types
 	) where

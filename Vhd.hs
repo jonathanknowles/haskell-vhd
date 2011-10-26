@@ -85,7 +85,7 @@ cmdConvert [fileRaw, fileVhd, size] = do
 				else do
 					unless (isBlockZero srcblock) $ do
 						let blockNb = offset `div` fromIntegral blockSize
-						extendBlock ctx blockNb
+						appendEmptyBlock ctx blockNb
 						sectorOff <- batRead (ctxBatPtr ctx) blockNb
 						withBlock (ctxFilePath ctx) (headerBlockSize $ ctxHeader ctx) sectorOff $ \block ->
 							writeBlock block srcblock 0
