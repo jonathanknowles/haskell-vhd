@@ -49,13 +49,12 @@ dataOfBlock (Block bs ptr) = ptr `plusPtr` (bitmapSizeOfBlock bs)
 
 -- | mmap a block using a filepath, a blocksize
 withBlock :: FilePath -> BlockSize -> Word32 -> (Block -> IO a) -> IO a
-withBlock file bs sectorOff f = mmapWithFilePtr file ReadWrite (Just offsetSize) $ \(ptr, sz) ->
-		f (Block bs $ castPtr ptr)
+withBlock file blockSize sectorOffset f =
+		mmapWithFilePtr file ReadWrite (Just (offset, length)) $ \(ptr, sz) ->
+			f (Block blockSize $ castPtr ptr)
 	where
-		absoluteOffset = fromIntegral (fromIntegral sectorOff * sectorLength)
-		offsetSize     = (absoluteOffset, fromIntegral bs + fromIntegral bitmapSize)
-		nbSector       = (bs `divRoundUp` sectorLength)
-		bitmapSize     = (nbSector `divRoundUp` 8) `roundUpToModulo` sectorLength
+		offset = (fromIntegral sectorOffset) * (fromIntegral sectorLength)
+		length = (fromIntegral blockSize) + (fromIntegral $ bitmapSizeOfBlock blockSize)
 
 readBlock :: Block -> Int -> Int -> IO ByteString
 readBlock block offsetStart offsetEnd = do
