@@ -99,7 +99,7 @@ parentLocatorEntry   e = assert (B.length e ==  24) $ ParentLocatorEntry   e
 uniqueId             i = assert (B.length i ==  16) $ UniqueId             i
 
 parentUnicodeName n
-	| encodedLength > 512 = error "parent unicode name length must be < 512 bytes"
+	| encodedLength > 512 = error "parent unicode name length must be <= 512 bytes"
 	| otherwise           = ParentUnicodeName n
 	where
 		encodedLength = B.length $ encodeUtf16BE $ T.pack n
