@@ -71,6 +71,15 @@ withVhdContext filePath f = do
 			else
 				buildContext Nothing
 
+contextChain :: Context -> [Context]
+contextChain context = context : maybe [] contextChain (ctxParent context)
+
+filePathChain :: Context -> [FilePath]
+filePathChain = map ctxFilePath . contextChain
+
+handleChain :: Context -> [Handle]
+handleChain = map ctxHandle . contextChain
+
 -- | create empty block at the end
 appendEmptyBlock :: Context -> Int -> IO ()
 appendEmptyBlock ctx n = do
