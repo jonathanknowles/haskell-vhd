@@ -32,7 +32,8 @@ Library
                    , random
                    , storable-endian
   Exposed-modules:   Data.VHD
-  Other-modules:     Data.VHD.Bat
+  Other-modules:     Data.BitSet
+                     Data.VHD.Bat
                      Data.VHD.Bitmap
                      Data.VHD.Block
                      Data.VHD.Checksum
