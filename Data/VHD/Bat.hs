@@ -23,8 +23,10 @@ import Control.Monad
 
 import System.IO.MMap
 
-data Batmap = Batmap Bitmap Int
-data Bat = Bat (Ptr Word32) (Ptr Word32) (Maybe Batmap)
+data Bat      = Bat BatStart BatEnd (Maybe Batmap)
+type BatStart = Ptr Word32
+type BatEnd   = Ptr Word32
+data Batmap   = Batmap Bitmap Int
 
 sectorLength = 512
 
