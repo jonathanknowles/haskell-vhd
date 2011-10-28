@@ -4,6 +4,7 @@ module Data.BitSet
 	, fromByteString
 	, fromRange
 	, toList
+	, isEmpty
 	, intersection
 	, union
 	, subtract
@@ -53,6 +54,9 @@ fromRange lo hi = BitSet generate where
 
 toList :: BitSet -> [Int]
 toList (BitSet b) = map snd $ filter fst $ zip (byteStringBits b) [0 ..]
+
+isEmpty :: BitSet -> Bool
+isEmpty (BitSet b) = B.all (== 0) b
 
 intersection :: BitSet -> BitSet -> BitSet
 union        :: BitSet -> BitSet -> BitSet
