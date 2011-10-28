@@ -32,9 +32,9 @@ generateFromRange lo hi
 
 	| lo <  0  = error "lower bound cannot be less than zero."
 	| lo >  hi = error "lower bound cannot be greater than upper bound."
-	| lo == hi = BitSet $ B.empty
+	| lo == hi = BitSet B.empty
 
-	| lo     == 0 && hiBit  == 0 = BitSet $ setBits
+	| lo     == 0 && hiBit  == 0 = BitSet setBits
 	| loBit  == 0 && hiBit  == 0 = BitSet $ B.concat [clearBits, setBits]
 	| loBit  == 0 && hiBit  /= 0 = BitSet $ B.concat [clearBits, setBits, fallByte]
 	| loBit  /= 0 && hiBit  == 0 = BitSet $ B.concat [clearBits, riseByte, setBits]
