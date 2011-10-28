@@ -1,10 +1,12 @@
 module Data.BitSet
 	( BitSet
-	, generateFromRange
+	, empty
+	, fromByteString
+	, fromRange
+	, toList
 	, intersection
 	, union
-	, toList
-	, fromByteString
+	, subtract
 	)
 	where
 
@@ -12,26 +14,20 @@ import Control.Exception
 import Data.Bits
 import qualified Data.ByteString as B
 import Data.Word
+import Prelude hiding (subtract)
 
 data BitSet = BitSet B.ByteString
 
-instance Show BitSet where
-	show = show . toList
-
-fromByteString :: B.ByteString -> BitSet
-fromByteString = BitSet
+instance Show BitSet where show = show . toList
 
 empty :: BitSet
 empty = BitSet B.empty
 
-fillByte :: Word8 -> Int -> Int -> Word8
-fillByte byte loBit hiBit =
-	if loBit < hiBit
-		then fillByte (setBit byte loBit) (loBit + 1) hiBit
-		else byte
+fromByteString :: B.ByteString -> BitSet
+fromByteString = BitSet
 
-generateFromRange :: Int -> Int -> BitSet
-generateFromRange lo hi = BitSet generate where
+fromRange :: Int -> Int -> BitSet
+fromRange lo hi = BitSet generate where
 
 	generate
 		| lo <  0  = error "lower bound cannot be less than zero."
@@ -55,6 +51,26 @@ generateFromRange lo hi = BitSet generate where
 	fallByte = B.singleton $ fillByte 0     0 hiBit
 	humpByte = B.singleton $ fillByte 0 loBit hiBit
 
+toList :: BitSet -> [Int]
+toList (BitSet b) = map snd $ filter fst $ zip (byteStringBits b) [0 ..]
+
+intersection :: BitSet -> BitSet -> BitSet
+union        :: BitSet -> BitSet -> BitSet
+subtract     :: BitSet -> BitSet -> BitSet
+
+intersection = binaryOp (.&.)
+union        = binaryOp (.|.)
+subtract     = binaryOp (\x y -> x .&. complement y)
+
+binaryOp f (BitSet b1) (BitSet b2) =
+	BitSet $ byteStringPackZipWith f b1' b2'
+	where (b1', b2') = byteStringsPad b1 b2
+
+byteStringBits byteString = do
+	word <- B.unpack byteString
+	bit <- word8Bits word
+	return bit
+
 byteStringPackZipWith :: (Word8 -> Word8 -> Word8) -> B.ByteString -> B.ByteString -> B.ByteString
 byteStringPackZipWith = ((B.pack .) .) . B.zipWith
 
@@ -67,21 +83,11 @@ byteStringsPad b1 b2 =
 		length1 = B.length b1
 		length2 = B.length b2
 
-intersection = binaryOp (.&.)
-union        = binaryOp (.|.)
-subtract     = binaryOp (\x y -> x .&. complement y)
-
-binaryOp f (BitSet b1) (BitSet b2) =
-	BitSet $ byteStringPackZipWith f b1' b2'
-	where (b1', b2') = byteStringsPad b1 b2
+fillByte :: Word8 -> Int -> Int -> Word8
+fillByte byte loBit hiBit = if loBit < hiBit
+	then fillByte (setBit byte loBit) (loBit + 1) hiBit
+	else byte
 
 word8Bits :: Word8 -> [Bool]
 word8Bits w = map (testBit w) [0 .. 7]
 
-byteStringBits byteString = do
-	word <- B.unpack byteString
-	bit <- word8Bits word
-	return bit
-
-toList :: BitSet -> [Int]
-toList (BitSet b) = map snd $ filter fst $ zip (byteStringBits b) [0 ..]
