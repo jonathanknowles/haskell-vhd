@@ -15,6 +15,9 @@ import Data.Word
 
 data BitSet = BitSet B.ByteString
 
+instance Show BitSet where
+	show = show . toList
+
 fromByteString :: B.ByteString -> BitSet
 fromByteString = BitSet
 
@@ -69,6 +72,7 @@ byteStringsPad b1 b2 =
 
 intersection = binaryOp (.&.)
 union        = binaryOp (.|.)
+subtract     = binaryOp (\x y -> x .&. complement y)
 
 binaryOp f (BitSet b1) (BitSet b2) =
 	BitSet $ byteStringPackZipWith f b1' b2'
