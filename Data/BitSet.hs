@@ -52,9 +52,9 @@ fromRange lo hi = BitSet generate where
 	clearBytes = B.replicate (loByteFloor                ) 0x00
 	setBytes   = B.replicate (hiByteFloor - loByteCeiling) 0xff
 
-	riseByte = B.singleton $ fillByte 0 loBit     8
-	fallByte = B.singleton $ fillByte 0     0 hiBit
-	humpByte = B.singleton $ fillByte 0 loBit hiBit
+	riseByte = B.singleton $ setBits 0 loBit     8
+	fallByte = B.singleton $ setBits 0     0 hiBit
+	humpByte = B.singleton $ setBits 0 loBit hiBit
 
 toList :: BitSet -> [Int]
 toList (BitSet b) = map snd $ filter fst $ zip (byteStringBits b) [0 ..]
@@ -91,10 +91,10 @@ byteStringsPad b1 b2 =
 		length1 = B.length b1
 		length2 = B.length b2
 
-fillByte :: Word8 -> Int -> Int -> Word8
-fillByte byte loBit hiBit = if loBit < hiBit
-	then fillByte (setBit byte loBit) (loBit + 1) hiBit
-	else byte
+setBits :: Bits a => a -> Int -> Int -> a
+setBits value loBit hiBit = if loBit < hiBit
+	then setBits (setBit value loBit) (loBit + 1) hiBit
+	else value
 
 word8Bits :: Word8 -> [Bool]
 word8Bits w = map (testBit w) [0 .. 7]
