@@ -4,6 +4,8 @@ module Data.VHD.Block
 	, bitmapSizeOfBlockSize
 	, bitmapOfBlock
 	, withBlock
+	, readBitmap
+	, readData
 	, readDataRange
 	, writeDataRange
 	, sectorLength
