@@ -4,8 +4,8 @@ module Data.VHD.Block
 	, bitmapSizeOfBlockSize
 	, bitmapOfBlock
 	, withBlock
-	, readBlock
-	, writeBlock
+	, readDataRange
+	, writeDataRange
 	, sectorLength
 	) where
 
@@ -57,8 +57,8 @@ withBlock file blockSize sectorOffset f =
 		offset = (fromIntegral sectorOffset) * (fromIntegral sectorLength)
 		length = (fromIntegral blockSize) + (fromIntegral $ bitmapSizeOfBlockSize blockSize)
 
-readBlock :: Block -> Int -> Int -> IO ByteString
-readBlock block offsetStart offsetEnd = do
+readDataRange :: Block -> Int -> Int -> IO ByteString
+readDataRange block offsetStart offsetEnd = do
 	-- for the moment, assume we're reading from a dynamic disk.
 	-- later on, we'll also need to handle differencing disks here.
 	B.create length (\bsptr -> B.memcpy (castPtr bsptr) (dataPtr `plusPtr` offsetStart) (fromIntegral length))
@@ -68,8 +68,8 @@ readBlock block offsetStart offsetEnd = do
 		sectorStart  = fromIntegral offsetStart `div` sectorLength
 		sectorEnd    = fromIntegral offsetEnd   `div` sectorLength
 
-writeBlock :: Block -> ByteString -> Int -> IO ()
-writeBlock block content offset = do
+writeDataRange :: Block -> ByteString -> Int -> IO ()
+writeDataRange block content offset = do
 	-- sectors need to be prepared for differential disk if the bitmap was clear before,
 	-- at the moment assumption is it's 0ed
 	bitmapSetRange bitmap (fromIntegral sectorStart) (fromIntegral sectorEnd)

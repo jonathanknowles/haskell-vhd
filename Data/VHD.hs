@@ -6,8 +6,8 @@ module Data.VHD
 	, getInfo
 	-- * block related operations
 	, Block
-	, readBlock
-	, writeBlock
+	, readDataRange
+	, writeDataRange
 	, withBlock
 	-- * ctx related operations
 	, Context (..)
