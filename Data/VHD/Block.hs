@@ -45,6 +45,9 @@ bitmapSizeOfBlockSize blockSize = fromIntegral ((nbSector `divRoundUp` 8) `round
 bitmapOfBlock :: Block -> Bitmap
 bitmapOfBlock (Block _ ptr) = Bitmap ptr
 
+blockSizeOfBlock :: Block -> BlockSize
+blockSizeOfBlock (Block bs _) = bs
+
 dataOfBlock :: Block -> Data
 dataOfBlock (Block bs ptr) = Data $ ptr `plusPtr` (bitmapSizeOfBlockSize bs)
 
@@ -56,6 +59,9 @@ withBlock file blockSize sectorOffset f =
 	where
 		offset = (fromIntegral sectorOffset) * (fromIntegral sectorLength)
 		length = (fromIntegral blockSize) + (fromIntegral $ bitmapSizeOfBlockSize blockSize)
+
+readData :: Block -> IO ByteString
+readData block = readDataRange block 0 (fromIntegral $ blockSizeOfBlock block)
 
 readDataRange :: Block -> Int -> Int -> IO ByteString
 readDataRange block offsetStart offsetEnd = do
