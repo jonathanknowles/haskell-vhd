@@ -64,7 +64,6 @@ readBlock block offsetStart offsetEnd = do
 	B.create length (\bsptr -> B.memcpy (castPtr bsptr) (dataPtr `plusPtr` offsetStart) (fromIntegral length))
 	where
 		length       = offsetEnd - offsetStart
-		bitmapPtr    = bitmapOfBlock block
 		Data dataPtr = dataOfBlock block
 		sectorStart  = fromIntegral offsetStart `div` sectorLength
 		sectorEnd    = fromIntegral offsetEnd   `div` sectorLength
