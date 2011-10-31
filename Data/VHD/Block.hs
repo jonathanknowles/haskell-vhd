@@ -1,7 +1,7 @@
 module Data.VHD.Block
 	( Block
 	, Sector
-	, bitmapSizeOfBlock
+	, bitmapSizeOfBlockSize
 	, bitmapOfBlock
 	, withBlock
 	, readBlock
@@ -35,8 +35,8 @@ sectorLength :: Word32
 sectorLength = 512
 
 -- | this is the padded size of the bitmap for a specific blocksize
-bitmapSizeOfBlock :: BlockSize -> Int
-bitmapSizeOfBlock blockSize = fromIntegral ((nbSector `divRoundUp` 8) `roundUpToModulo` sectorLength)
+bitmapSizeOfBlockSize :: BlockSize -> Int
+bitmapSizeOfBlockSize blockSize = fromIntegral ((nbSector `divRoundUp` 8) `roundUpToModulo` sectorLength)
 	where nbSector = blockSize `divRoundUp` sectorLength
 
 -- | get a bitmap type out of a block type.
@@ -45,7 +45,7 @@ bitmapOfBlock :: Block -> Bitmap
 bitmapOfBlock (Block _ ptr) = Bitmap ptr
 
 dataOfBlock :: Block -> Ptr Word8
-dataOfBlock (Block bs ptr) = ptr `plusPtr` (bitmapSizeOfBlock bs)
+dataOfBlock (Block bs ptr) = ptr `plusPtr` (bitmapSizeOfBlockSize bs)
 
 -- | mmap a block using a filepath, a blocksize
 withBlock :: FilePath -> BlockSize -> Word32 -> (Block -> IO a) -> IO a
@@ -54,7 +54,7 @@ withBlock file blockSize sectorOffset f =
 			f (Block blockSize $ castPtr ptr)
 	where
 		offset = (fromIntegral sectorOffset) * (fromIntegral sectorLength)
-		length = (fromIntegral blockSize) + (fromIntegral $ bitmapSizeOfBlock blockSize)
+		length = (fromIntegral blockSize) + (fromIntegral $ bitmapSizeOfBlockSize blockSize)
 
 readBlock :: Block -> Int -> Int -> IO ByteString
 readBlock block offsetStart offsetEnd = do

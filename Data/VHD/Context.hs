@@ -98,5 +98,5 @@ appendEmptyBlock ctx n = do
 
 	where
 		fullSize   = bitmapSize + fromIntegral blockSize
-		bitmapSize = bitmapSizeOfBlock blockSize
+		bitmapSize = bitmapSizeOfBlockSize blockSize
 		blockSize  = headerBlockSize $ ctxHeader ctx
