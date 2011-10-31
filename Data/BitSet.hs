@@ -5,7 +5,7 @@ module Data.BitSet
 	, fromRange
 	, toList
 	, isEmpty
-	, intersection
+	, intersect
 	, union
 	, subtract
 	)
@@ -62,13 +62,13 @@ toList (BitSet b) = map snd $ filter fst $ zip (byteStringBits b) [0 ..]
 isEmpty :: BitSet -> Bool
 isEmpty (BitSet b) = B.all (== 0) b
 
-intersection :: BitSet -> BitSet -> BitSet
-union        :: BitSet -> BitSet -> BitSet
-subtract     :: BitSet -> BitSet -> BitSet
+intersect :: BitSet -> BitSet -> BitSet
+union     :: BitSet -> BitSet -> BitSet
+subtract  :: BitSet -> BitSet -> BitSet
 
-intersection = binaryOp (.&.)
-union        = binaryOp (.|.)
-subtract     = binaryOp (\x y -> x .&. complement y)
+intersect = binaryOp (.&.)
+union     = binaryOp (.|.)
+subtract  = binaryOp (\x y -> x .&. complement y)
 
 binaryOp f (BitSet b1) (BitSet b2) =
 	BitSet $ byteStringPackZipWith f b1' b2'
