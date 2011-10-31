@@ -35,6 +35,9 @@ data Data = Data (Ptr Word8)
 sectorLength :: Word32
 sectorLength = 512
 
+bitmapSizeOfBlock :: Block -> Int
+bitmapSizeOfBlock (Block blockSize _) = bitmapSizeOfBlockSize blockSize
+
 -- | this is the padded size of the bitmap for a specific blocksize
 bitmapSizeOfBlockSize :: BlockSize -> Int
 bitmapSizeOfBlockSize blockSize = fromIntegral ((nbSector `divRoundUp` 8) `roundUpToModulo` sectorLength)
@@ -59,6 +62,14 @@ withBlock file blockSize sectorOffset f =
 	where
 		offset = (fromIntegral sectorOffset) * (fromIntegral sectorLength)
 		length = (fromIntegral blockSize) + (fromIntegral $ bitmapSizeOfBlockSize blockSize)
+
+readBitmap :: Block -> IO ByteString
+readBitmap block =
+	B.create (fromIntegral length) create where
+		length = bitmapSizeOfBlock block
+		create byteStringPtr = B.memcpy target source (fromIntegral length) where
+			source = case bitmapOfBlock block of Bitmap b -> b
+			target = castPtr byteStringPtr
 
 readData :: Block -> IO ByteString
 readData block = readDataRange block 0 (fromIntegral $ blockSizeOfBlock block)
