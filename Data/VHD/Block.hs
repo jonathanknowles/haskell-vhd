@@ -30,6 +30,7 @@ import System.IO.MMap
 
 data Block = Block BlockSize (Ptr Word8)
 data Sector = Sector (Ptr Word8)
+data Data = Data (Ptr Word8)
 
 sectorLength :: Word32
 sectorLength = 512
@@ -44,8 +45,8 @@ bitmapSizeOfBlockSize blockSize = fromIntegral ((nbSector `divRoundUp` 8) `round
 bitmapOfBlock :: Block -> Bitmap
 bitmapOfBlock (Block _ ptr) = Bitmap ptr
 
-dataOfBlock :: Block -> Ptr Word8
-dataOfBlock (Block bs ptr) = ptr `plusPtr` (bitmapSizeOfBlockSize bs)
+dataOfBlock :: Block -> Data
+dataOfBlock (Block bs ptr) = Data $ ptr `plusPtr` (bitmapSizeOfBlockSize bs)
 
 -- | mmap a block using a filepath, a blocksize
 withBlock :: FilePath -> BlockSize -> Word32 -> (Block -> IO a) -> IO a
@@ -62,11 +63,11 @@ readBlock block offsetStart offsetEnd = do
 	-- later on, we'll also need to handle differencing disks here.
 	B.create length (\bsptr -> B.memcpy (castPtr bsptr) (dataPtr `plusPtr` offsetStart) (fromIntegral length))
 	where
-		length      = offsetEnd - offsetStart
-		bitmapPtr   = bitmapOfBlock block
-		dataPtr     = dataOfBlock block
-		sectorStart = fromIntegral offsetStart `div` sectorLength
-		sectorEnd   = fromIntegral offsetEnd   `div` sectorLength
+		length       = offsetEnd - offsetStart
+		bitmapPtr    = bitmapOfBlock block
+		Data dataPtr = dataOfBlock block
+		sectorStart  = fromIntegral offsetStart `div` sectorLength
+		sectorEnd    = fromIntegral offsetEnd   `div` sectorLength
 
 writeBlock :: Block -> ByteString -> Int -> IO ()
 writeBlock block content offset = do
@@ -75,8 +76,8 @@ writeBlock block content offset = do
 	bitmapSetRange bitmapPtr (fromIntegral sectorStart) (fromIntegral sectorEnd)
 	B.unsafeUseAsCString content (\bsptr -> B.memcpy (dataPtr `plusPtr` offset) (castPtr bsptr) (fromIntegral length))
 	where
-		length      = B.length content
-		bitmapPtr   = bitmapOfBlock block
-		dataPtr     = dataOfBlock block
-		sectorStart = fromIntegral offset `div` sectorLength
-		sectorEnd   = fromIntegral (offset + B.length content) `div` sectorLength
+		length       = B.length content
+		bitmapPtr    = bitmapOfBlock block
+		Data dataPtr = dataOfBlock block
+		sectorStart  = fromIntegral offset `div` sectorLength
+		sectorEnd    = fromIntegral (offset + B.length content) `div` sectorLength
