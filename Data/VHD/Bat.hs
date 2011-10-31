@@ -2,6 +2,7 @@ module Data.VHD.Bat
 	( Bat (..)
 	, batGetSize
 	, batRead
+	, batReadMaybe
 	, batWrite
 	, batMmap
 	, batIterate
@@ -30,6 +31,8 @@ data Batmap   = Batmap Bitmap Int
 
 sectorLength = 512
 
+emptyEntry = 0xffffffff
+
 batmapSet n (Batmap bitmap _) = bitmapSet bitmap n
 
 batmapChecksum :: Batmap -> IO Checksum
@@ -48,6 +51,9 @@ batGetSize header footer = fromIntegral ((maxEntries * 4) `roundUpToModulo` sect
 batRead :: Bat -> Int -> IO Word32
 batRead (Bat bptr _ _) n = peekBE ptr
 	where ptr = bptr `plusPtr` (n*4)
+
+batReadMaybe :: Bat -> Int -> IO (Maybe Word32)
+batReadMaybe b n = fmap (\x -> if x == emptyEntry then Nothing else Just x) (batRead b n)
 
 batWrite :: Bat -> Int -> Word32 -> IO ()
 batWrite (Bat bptr _ bmap) n v = pokeBE ptr v >> maybe (return ()) (batmapSet n) bmap
