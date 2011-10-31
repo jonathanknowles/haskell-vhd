@@ -38,19 +38,19 @@ fromRange lo hi = BitSet generate where
 		| lo <  0  = error "lower bound cannot be less than zero."
 		| lo >  hi = error "lower bound cannot be greater than upper bound."
 		| lo == hi = B.empty
-		| lo    == 0 && hiBit == 0 = setBits
-		| loBit == 0 && hiBit == 0 = B.concat [clearBits, setBits]
-		| loBit == 0 && hiBit /= 0 = B.concat [clearBits, setBits, fallByte]
-		| loBit /= 0 && hiBit == 0 = B.concat [clearBits, riseByte, setBits]
-		| loByteFloor   == hiByteFloor = B.concat [clearBits, humpByte]
-		| loByteCeiling == hiByteFloor = B.concat [clearBits, riseByte, fallByte]
-		| loByteCeiling <  hiByteFloor = B.concat [clearBits, riseByte, setBits, fallByte]
+		| lo    == 0 && hiBit == 0 = setBytes
+		| loBit == 0 && hiBit == 0 = B.concat [clearBytes, setBytes]
+		| loBit == 0 && hiBit /= 0 = B.concat [clearBytes, setBytes, fallByte]
+		| loBit /= 0 && hiBit == 0 = B.concat [clearBytes, riseByte, setBytes]
+		| loByteFloor   == hiByteFloor = B.concat [clearBytes, humpByte]
+		| loByteCeiling == hiByteFloor = B.concat [clearBytes, riseByte, fallByte]
+		| loByteCeiling <  hiByteFloor = B.concat [clearBytes, riseByte, setBytes, fallByte]
 
 	(loBit, loByteFloor, loByteCeiling) = (lo `mod` 8, lo `div` 8, (lo + 7) `div` 8)
 	(hiBit, hiByteFloor, hiByteCeiling) = (hi `mod` 8, hi `div` 8, (hi + 7) `div` 8)
 
-	clearBits = B.replicate (loByteFloor                ) 0x00
-	setBits   = B.replicate (hiByteFloor - loByteCeiling) 0xff
+	clearBytes = B.replicate (loByteFloor                ) 0x00
+	setBytes   = B.replicate (hiByteFloor - loByteCeiling) 0xff
 
 	riseByte = B.singleton $ fillByte 0 loBit     8
 	fallByte = B.singleton $ fillByte 0     0 hiBit
