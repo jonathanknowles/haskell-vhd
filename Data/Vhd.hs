@@ -45,6 +45,24 @@ data Vhd = Vhd
 	, vhdNodes      :: [VhdNode]
 	}
 
+withVhd :: FilePath -> (Vhd -> IO a) -> IO a
+withVhd = withVhdInner [] where
+	withVhdInner accumulatedNodes filePath f =
+		withVhdNode filePath $ \node ->
+			if diskType node == DiskTypeDifferencing
+				then withVhdInner (node : accumulatedNodes) (parentPath node) f
+				else f $ Vhd
+					-- TODO: require consistent block count and size across all nodes.
+					{ vhdBlockCount = blockCount node
+					, vhdBlockSize  = blockSize  node
+					, vhdNodes      = reverse $ node : accumulatedNodes
+					}
+	blockCount node = headerMaxTableEntries $ nodeHeader node
+	blockSize  node = headerBlockSize       $ nodeHeader node
+	diskType   node = footerDiskType        $ nodeFooter node
+	parentPath node = p where
+		ParentUnicodeName p = headerParentUnicodeName $ nodeHeader node
+
 data CreateParameters = CreateParameters
 	{ blockSize :: BlockSize
 	, size      :: Size
