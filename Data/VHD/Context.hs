@@ -23,13 +23,13 @@ import Control.Applicative ((<$>))
 import Control.Monad
 
 data VhdNode = VhdNode
-	{ nodeBat       :: Bat
-	, nodeHeader    :: Header
-	, nodeFooter    :: Footer
-	, nodeHandle    :: Handle
-	, nodeFilePath  :: FilePath
-	, nodeBModified :: IORef Bool
-	, nodeParent    :: Maybe VhdNode
+	{ nodeBat      :: Bat
+	, nodeHeader   :: Header
+	, nodeFooter   :: Footer
+	, nodeHandle   :: Handle
+	, nodeFilePath :: FilePath
+	, nodeModified :: IORef Bool
+	, nodeParent   :: Maybe VhdNode
 	}
 
 withVhdNode :: FilePath -> (VhdNode -> IO a) -> IO a
@@ -53,13 +53,13 @@ withVhdNode filePath f = do
 			batMmap filePath header footer mBatmapHdr $ \bat -> do
 				bmodified <- newIORef False
 				a <- f $ VhdNode
-					{ nodeBat       = bat
-					, nodeHeader    = header
-					, nodeFooter    = footer
-					, nodeHandle    = handle
-					, nodeFilePath  = filePath
-					, nodeBModified = bmodified
-					, nodeParent    = parent
+					{ nodeBat      = bat
+					, nodeHeader   = header
+					, nodeFooter   = footer
+					, nodeHandle   = handle
+					, nodeFilePath = filePath
+					, nodeModified = bmodified
+					, nodeParent   = parent
 					}
 				modified <- readIORef bmodified
 				when (modified) $ batUpdateChecksum bat
@@ -89,7 +89,7 @@ appendEmptyBlock node n = do
 	let (sector, m) = x `divMod` 512
 	unless (m == 0) $ error "wrong sector alignment"
 	batWrite (nodeBat node) n (fromIntegral sector)
-	modifyIORef (nodeBModified node) (const True)
+	modifyIORef (nodeModified node) (const True)
 
 	B.hPut (nodeHandle node) (B.replicate fullSize 0)
 
