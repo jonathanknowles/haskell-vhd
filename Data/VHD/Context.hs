@@ -23,7 +23,7 @@ import Control.Applicative ((<$>))
 import Control.Monad
 
 data Context = Context
-	{ ctxBatPtr    :: Bat
+	{ ctxBat       :: Bat
 	, ctxHeader    :: Header
 	, ctxFooter    :: Footer
 	, ctxHandle    :: Handle
@@ -53,7 +53,7 @@ withVhdContext filePath f = do
 			batMmap filePath header footer mBatmapHdr $ \bat -> do
 				bmodified <- newIORef False
 				a <- f $ Context
-					{ ctxBatPtr    = bat
+					{ ctxBat       = bat
 					, ctxHeader    = header
 					, ctxFooter    = footer
 					, ctxHandle    = handle
@@ -88,7 +88,7 @@ appendEmptyBlock ctx n = do
 	-- paranoid check
 	let (sector, m) = x `divMod` 512
 	unless (m == 0) $ error "wrong sector alignment"
-	batWrite (ctxBatPtr ctx) n (fromIntegral sector)
+	batWrite (ctxBat ctx) n (fromIntegral sector)
 	modifyIORef (ctxBModified ctx) (const True)
 
 	B.hPut (ctxHandle ctx) (B.replicate fullSize 0)

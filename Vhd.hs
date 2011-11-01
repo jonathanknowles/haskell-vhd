@@ -49,7 +49,7 @@ cmdRead [file] = withVhdContext file $ \ctx -> do
 		, ("timestamp        ", show $ footerTimeStamp ftr)
 		]
 	allocated <- newIORef 0
-	batIterate (ctxBatPtr ctx) (fromIntegral $ headerMaxTableEntries hdr) $ \i n -> do
+	batIterate (ctxBat ctx) (fromIntegral $ headerMaxTableEntries hdr) $ \i n -> do
 		unless (n == 0xffffffff) $ modifyIORef allocated ((+) 1) >> printf "BAT[%.5x] = %08x\n" i n
 	nb <- readIORef allocated
 	putStrLn ("blocks allocated  : " ++ show nb ++ "/" ++ show (headerMaxTableEntries hdr))
@@ -86,7 +86,7 @@ cmdConvert [fileRaw, fileVhd, size] = do
 					unless (isBlockZero srcblock) $ do
 						let blockNb = offset `div` fromIntegral blockSize
 						appendEmptyBlock ctx blockNb
-						sectorOff <- batRead (ctxBatPtr ctx) blockNb
+						sectorOff <- batRead (ctxBat ctx) blockNb
 						withBlock (ctxFilePath ctx) (headerBlockSize $ ctxHeader ctx) sectorOff $ \block ->
 							writeBlock block srcblock 0
 						putStrLn ("block " ++ show (offset `div` fromIntegral blockSize) ++ " written")
