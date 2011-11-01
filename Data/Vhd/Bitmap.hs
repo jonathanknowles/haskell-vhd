@@ -1,4 +1,4 @@
-module Data.VHD.Bitmap
+module Data.Vhd.Bitmap
 	( Bitmap (..)
 	, bitmapGet
 	, bitmapSet

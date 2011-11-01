@@ -1,4 +1,4 @@
-module Data.VHD.Utils
+module Data.Vhd.Utils
 	( divRoundUp
 	, roundUpToModulo
 	, hAlign

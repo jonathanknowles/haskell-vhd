@@ -1,6 +1,6 @@
-module Data.VHD.Geometry where
+module Data.Vhd.Geometry where
 
-import Data.VHD.Types
+import Data.Vhd.Types
 import Data.Word
 
 -- | Calculates disk geometry using the algorithm presented in

@@ -1,15 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Data.VHD.Node
+module Data.Vhd.Node
 	( VhdNode (..)
 	, withVhdNode
 	, appendEmptyBlock
 	) where
 
-import Data.VHD.Block
-import Data.VHD.Bat
-import Data.VHD.Types
-import Data.VHD.Utils
-import Data.VHD.Serialize
+import Data.Vhd.Block
+import Data.Vhd.Bat
+import Data.Vhd.Types
+import Data.Vhd.Utils
+import Data.Vhd.Serialize
 
 import Data.Serialize (decode, encode)
 

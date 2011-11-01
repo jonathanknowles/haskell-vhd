@@ -1,4 +1,4 @@
-module Data.VHD.Bat
+module Data.Vhd.Bat
 	( Bat (..)
 	, batGetSize
 	, batRead
@@ -15,10 +15,10 @@ import Data.Storable.Endian
 import Foreign.Ptr
 import Foreign.Storable
 
-import Data.VHD.Types
-import Data.VHD.Serialize
-import Data.VHD.Utils
-import Data.VHD.Bitmap
+import Data.Vhd.Types
+import Data.Vhd.Serialize
+import Data.Vhd.Utils
+import Data.Vhd.Bitmap
 
 import Control.Monad
 

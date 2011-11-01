@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Data.VHD
+module Data.Vhd
 	( create
 	, CreateParameters (..)
 	, defaultCreateParameters
@@ -14,7 +14,7 @@ module Data.VHD
 	, withVhdNode
 	, appendEmptyBlock
 	-- * exported Types
-	, module Data.VHD.Types
+	, module Data.Vhd.Types
 	) where
 
 import Control.Applicative
@@ -24,14 +24,14 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString as B
 import Data.ByteString.Char8 ()
 import Data.Serialize
-import Data.VHD.Serialize
-import Data.VHD.Types
-import Data.VHD.Bat
-import Data.VHD.Block
-import Data.VHD.Node
-import Data.VHD.Utils
-import Data.VHD.Geometry
-import Data.VHD.Checksum
+import Data.Vhd.Serialize
+import Data.Vhd.Types
+import Data.Vhd.Bat
+import Data.Vhd.Block
+import Data.Vhd.Node
+import Data.Vhd.Utils
+import Data.Vhd.Geometry
+import Data.Vhd.Checksum
 import Data.Bits
 import Data.Maybe
 import Data.Word

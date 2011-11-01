@@ -1,4 +1,4 @@
-module Data.VHD.Block
+module Data.Vhd.Block
 	( Block
 	, Sector
 	, bitmapSizeOfBlockSize
@@ -16,10 +16,10 @@ import Foreign.Storable
 import Data.Word
 import Data.Bits
 
-import Data.VHD.Utils
-import Data.VHD.Types
-import Data.VHD.Bat
-import Data.VHD.Bitmap
+import Data.Vhd.Utils
+import Data.Vhd.Types
+import Data.Vhd.Bat
+import Data.Vhd.Bitmap
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B

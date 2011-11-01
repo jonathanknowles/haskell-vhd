@@ -1,9 +1,9 @@
-import Data.VHD
-import Data.VHD.Types
-import Data.VHD.Block
-import Data.VHD.Node
-import Data.VHD.Bat
-import Data.VHD.Checksum
+import Data.Vhd
+import Data.Vhd.Types
+import Data.Vhd.Block
+import Data.Vhd.Node
+import Data.Vhd.Bat
+import Data.Vhd.Checksum
 import System.Environment (getArgs)
 import System.IO
 import Text.Printf

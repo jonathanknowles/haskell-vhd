@@ -1,12 +1,12 @@
-module Data.VHD.Checksum
+module Data.Vhd.Checksum
 	( adjustFooterChecksum
 	, adjustHeaderChecksum
 	, verifyFooterChecksum
 	, verifyHeaderChecksum
 	) where
 
-import Data.VHD.Types
-import Data.VHD.Serialize
+import Data.Vhd.Types
+import Data.Vhd.Serialize
 
 import Data.Bits
 import Data.Word
