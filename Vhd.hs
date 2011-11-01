@@ -1,7 +1,7 @@
 import Data.VHD
 import Data.VHD.Types
 import Data.VHD.Block
-import Data.VHD.Context
+import Data.VHD.Node
 import Data.VHD.Bat
 import Data.VHD.Checksum
 import System.Environment (getArgs)

@@ -37,7 +37,7 @@ Library
                      Data.VHD.Bitmap
                      Data.VHD.Block
                      Data.VHD.Checksum
-                     Data.VHD.Context
+                     Data.VHD.Node
                      Data.VHD.Geometry
                      Data.VHD.Serialize
                      Data.VHD.Types

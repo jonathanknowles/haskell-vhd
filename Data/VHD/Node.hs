@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Data.VHD.Context
+module Data.VHD.Node
 	( VhdNode (..)
 	, withVhdNode
 	, appendEmptyBlock

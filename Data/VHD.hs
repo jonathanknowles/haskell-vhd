@@ -28,7 +28,7 @@ import Data.VHD.Serialize
 import Data.VHD.Types
 import Data.VHD.Bat
 import Data.VHD.Block
-import Data.VHD.Context
+import Data.VHD.Node
 import Data.VHD.Utils
 import Data.VHD.Geometry
 import Data.VHD.Checksum
