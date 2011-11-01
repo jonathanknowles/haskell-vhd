@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Data.VHD.Context
-	( Context (..)
-	, withVhdContext
+	( VhdNode (..)
+	, withVhdNode
 	, appendEmptyBlock
 	) where
 
@@ -22,18 +22,18 @@ import System.IO
 import Control.Applicative ((<$>))
 import Control.Monad
 
-data Context = Context
-	{ ctxBat       :: Bat
-	, ctxHeader    :: Header
-	, ctxFooter    :: Footer
-	, ctxHandle    :: Handle
-	, ctxFilePath  :: FilePath
-	, ctxBModified :: IORef Bool
-	, ctxParent    :: Maybe Context
+data VhdNode = VhdNode
+	{ nodeBat       :: Bat
+	, nodeHeader    :: Header
+	, nodeFooter    :: Footer
+	, nodeHandle    :: Handle
+	, nodeFilePath  :: FilePath
+	, nodeBModified :: IORef Bool
+	, nodeParent    :: Maybe VhdNode
 	}
 
-withVhdContext :: FilePath -> (Context -> IO a) -> IO a
-withVhdContext filePath f = do
+withVhdNode :: FilePath -> (VhdNode -> IO a) -> IO a
+withVhdNode filePath f = do
 	withFile filePath ReadWriteMode $ \handle -> do
 		footer <- either error id . decode <$> B.hGet handle 512
 		header <- either error id . decode <$> B.hGet handle 1024
@@ -49,17 +49,17 @@ withVhdContext filePath f = do
 							then return $ Just bHdr
 							else return Nothing
 			else return Nothing
-		let buildContext parent =
+		let buildNode parent =
 			batMmap filePath header footer mBatmapHdr $ \bat -> do
 				bmodified <- newIORef False
-				a <- f $ Context
-					{ ctxBat       = bat
-					, ctxHeader    = header
-					, ctxFooter    = footer
-					, ctxHandle    = handle
-					, ctxFilePath  = filePath
-					, ctxBModified = bmodified
-					, ctxParent    = parent
+				a <- f $ VhdNode
+					{ nodeBat       = bat
+					, nodeHeader    = header
+					, nodeFooter    = footer
+					, nodeHandle    = handle
+					, nodeFilePath  = filePath
+					, nodeBModified = bmodified
+					, nodeParent    = parent
 					}
 				modified <- readIORef bmodified
 				when (modified) $ batUpdateChecksum bat
@@ -67,36 +67,36 @@ withVhdContext filePath f = do
 		if footerDiskType footer == DiskTypeDifferencing
 			then do
 				let ParentUnicodeName parentFilePath = headerParentUnicodeName header
-				withVhdContext parentFilePath $ \parent -> buildContext $ Just parent
+				withVhdNode parentFilePath $ \parent -> buildNode $ Just parent
 			else
-				buildContext Nothing
+				buildNode Nothing
 
-contextChain :: Context -> [Context]
-contextChain context = context : maybe [] contextChain (ctxParent context)
+contextChain :: VhdNode -> [VhdNode]
+contextChain context = context : maybe [] contextChain (nodeParent context)
 
-filePathChain :: Context -> [FilePath]
-filePathChain = map ctxFilePath . contextChain
+filePathChain :: VhdNode -> [FilePath]
+filePathChain = map nodeFilePath . contextChain
 
-handleChain :: Context -> [Handle]
-handleChain = map ctxHandle . contextChain
+handleChain :: VhdNode -> [Handle]
+handleChain = map nodeHandle . contextChain
 
 -- | create empty block at the end
-appendEmptyBlock :: Context -> Int -> IO ()
-appendEmptyBlock ctx n = do
-	hSeek (ctxHandle ctx) SeekFromEnd 512
-	x <- hTell (ctxHandle ctx)
+appendEmptyBlock :: VhdNode -> Int -> IO ()
+appendEmptyBlock node n = do
+	hSeek (nodeHandle node) SeekFromEnd 512
+	x <- hTell (nodeHandle node)
 	-- paranoid check
 	let (sector, m) = x `divMod` 512
 	unless (m == 0) $ error "wrong sector alignment"
-	batWrite (ctxBat ctx) n (fromIntegral sector)
-	modifyIORef (ctxBModified ctx) (const True)
+	batWrite (nodeBat node) n (fromIntegral sector)
+	modifyIORef (nodeBModified node) (const True)
 
-	B.hPut (ctxHandle ctx) (B.replicate fullSize 0)
+	B.hPut (nodeHandle node) (B.replicate fullSize 0)
 
-	hAlign (ctxHandle ctx) (fromIntegral sectorLength)
-	B.hPut (ctxHandle ctx) $ encode (ctxFooter ctx)
+	hAlign (nodeHandle node) (fromIntegral sectorLength)
+	B.hPut (nodeHandle node) $ encode (nodeFooter node)
 
 	where
 		fullSize   = bitmapSize + fromIntegral blockSize
 		bitmapSize = bitmapSizeOfBlockSize blockSize
-		blockSize  = headerBlockSize $ ctxHeader ctx
+		blockSize  = headerBlockSize $ nodeHeader node

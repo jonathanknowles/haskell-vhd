@@ -9,9 +9,9 @@ module Data.VHD
 	, readDataRange
 	, writeDataRange
 	, withBlock
-	-- * ctx related operations
-	, Context (..)
-	, withVhdContext
+	-- * node related operations
+	, VhdNode (..)
+	, withVhdNode
 	, appendEmptyBlock
 	-- * exported Types
 	, module Data.VHD.Types
@@ -147,9 +147,9 @@ create' filePath createParams =
 			}
 
 -- | Reads raw data from a VHD.
-read :: Context -> Word64 -> Int -> IO B.ByteString
+read :: VhdNode -> Word64 -> Int -> IO B.ByteString
 read context byteOffset length = undefined
 
 -- | Writes raw data to a VHD.
-write :: Context -> Word64 -> B.ByteString -> IO ()
+write :: VhdNode -> Word64 -> B.ByteString -> IO ()
 write context byteOffset rawData = undefined
