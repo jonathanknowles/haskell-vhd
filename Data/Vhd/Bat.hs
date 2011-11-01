@@ -64,7 +64,7 @@ batMmap file header footer batmapHeader f =
 	mmapWithFilePtr file ReadWrite (Just offsetSize) $ \(ptr, sz) ->
 		let batmap    = Batmap (Bitmap (castPtr (ptr `plusPtr` batmapOffset))) batmapSize in
 		let batendPtr = ptr `plusPtr` batSize in
-		f (Bat (castPtr ptr) batendPtr (maybe Nothing (const $ Just batmap) batmapHeader))
+		f . Bat (castPtr ptr) batendPtr $ fmap (const batmap) batmapHeader
 	where
 		absoluteOffset   = fromIntegral (headerTableOffset header)
 		offsetSize       = (absoluteOffset, fromIntegral (batSize + maybe 0 (const 512) batmapHeader + batmapSize))
