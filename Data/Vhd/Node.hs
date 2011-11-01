@@ -29,7 +29,6 @@ data VhdNode = VhdNode
 	, nodeHandle   :: Handle
 	, nodeFilePath :: FilePath
 	, nodeModified :: IORef Bool
-	, nodeParent   :: Maybe VhdNode
 	}
 
 withVhdNode :: FilePath -> (VhdNode -> IO a) -> IO a
@@ -49,36 +48,19 @@ withVhdNode filePath f = do
 							then return $ Just bHdr
 							else return Nothing
 			else return Nothing
-		let buildNode parent =
-			batMmap filePath header footer mBatmapHdr $ \bat -> do
-				bmodified <- newIORef False
-				a <- f $ VhdNode
-					{ nodeBat      = bat
-					, nodeHeader   = header
-					, nodeFooter   = footer
-					, nodeHandle   = handle
-					, nodeFilePath = filePath
-					, nodeModified = bmodified
-					, nodeParent   = parent
-					}
-				modified <- readIORef bmodified
-				when (modified) $ batUpdateChecksum bat
-				return a
-		if footerDiskType footer == DiskTypeDifferencing
-			then do
-				let ParentUnicodeName parentFilePath = headerParentUnicodeName header
-				withVhdNode parentFilePath $ \parent -> buildNode $ Just parent
-			else
-				buildNode Nothing
-
-contextChain :: VhdNode -> [VhdNode]
-contextChain context = context : maybe [] contextChain (nodeParent context)
-
-filePathChain :: VhdNode -> [FilePath]
-filePathChain = map nodeFilePath . contextChain
-
-handleChain :: VhdNode -> [Handle]
-handleChain = map nodeHandle . contextChain
+		batMmap filePath header footer mBatmapHdr $ \bat -> do
+			bmodified <- newIORef False
+			a <- f $ VhdNode
+				{ nodeBat      = bat
+				, nodeHeader   = header
+				, nodeFooter   = footer
+				, nodeHandle   = handle
+				, nodeFilePath = filePath
+				, nodeModified = bmodified
+				}
+			modified <- readIORef bmodified
+			when (modified) $ batUpdateChecksum bat
+			return a
 
 -- | create empty block at the end
 appendEmptyBlock :: VhdNode -> Int -> IO ()
