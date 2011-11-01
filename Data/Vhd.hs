@@ -39,6 +39,12 @@ import Data.Time.Clock.POSIX
 
 import System.IO
 
+data Vhd = Vhd
+	{ vhdBlockCount :: Word32
+	, vhdBlockSize  :: BlockSize
+	, vhdNodes      :: [VhdNode]
+	}
+
 data CreateParameters = CreateParameters
 	{ blockSize :: BlockSize
 	, size      :: Size
@@ -147,9 +153,9 @@ create' filePath createParams =
 			}
 
 -- | Reads raw data from a VHD.
-read :: VhdNode -> Word64 -> Int -> IO B.ByteString
+read :: Vhd -> Word64 -> Int -> IO B.ByteString
 read context byteOffset length = undefined
 
 -- | Writes raw data to a VHD.
-write :: VhdNode -> Word64 -> B.ByteString -> IO ()
+write :: Vhd -> Word64 -> B.ByteString -> IO ()
 write context byteOffset rawData = undefined
