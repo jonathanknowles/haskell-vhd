@@ -1,4 +1,4 @@
-module Data.VHD.Serialize where
+module Data.Vhd.Serialize where
 
 import Control.Applicative
 import Control.Exception
@@ -6,7 +6,7 @@ import Control.Monad
 import Data.Bits
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as BL
-import Data.VHD.Types
+import Data.Vhd.Types
 import Data.Serialize
 import Data.Serialize.Get
 import Data.Serialize.Put

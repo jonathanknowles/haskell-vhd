@@ -1,7 +1,8 @@
-module Data.VHD.Bat
+module Data.Vhd.Bat
 	( Bat (..)
 	, batGetSize
 	, batRead
+	, batReadMaybe
 	, batWrite
 	, batMmap
 	, batIterate
@@ -14,10 +15,10 @@ import Data.Storable.Endian
 import Foreign.Ptr
 import Foreign.Storable
 
-import Data.VHD.Types
-import Data.VHD.Serialize
-import Data.VHD.Utils
-import Data.VHD.Bitmap
+import Data.Vhd.Types
+import Data.Vhd.Serialize
+import Data.Vhd.Utils
+import Data.Vhd.Bitmap
 
 import Control.Monad
 
@@ -29,6 +30,8 @@ type BatEnd   = Ptr Word32
 data Batmap   = Batmap Bitmap Int
 
 sectorLength = 512
+
+emptyEntry = 0xffffffff
 
 batmapSet n (Batmap bitmap _) = bitmapSet bitmap n
 
@@ -49,6 +52,9 @@ batRead :: Bat -> Int -> IO Word32
 batRead (Bat bptr _ _) n = peekBE ptr
 	where ptr = bptr `plusPtr` (n*4)
 
+batReadMaybe :: Bat -> Int -> IO (Maybe Word32)
+batReadMaybe b n = fmap (\x -> if x == emptyEntry then Nothing else Just x) (batRead b n)
+
 batWrite :: Bat -> Int -> Word32 -> IO ()
 batWrite (Bat bptr _ bmap) n v = pokeBE ptr v >> maybe (return ()) (batmapSet n) bmap
 	where ptr = bptr `plusPtr` (n*4)
@@ -58,7 +64,7 @@ batMmap file header footer batmapHeader f =
 	mmapWithFilePtr file ReadWrite (Just offsetSize) $ \(ptr, sz) ->
 		let batmap    = Batmap (Bitmap (castPtr (ptr `plusPtr` batmapOffset))) batmapSize in
 		let batendPtr = ptr `plusPtr` batSize in
-		f (Bat (castPtr ptr) batendPtr (maybe Nothing (const $ Just batmap) batmapHeader))
+		f . Bat (castPtr ptr) batendPtr $ fmap (const batmap) batmapHeader
 	where
 		absoluteOffset   = fromIntegral (headerTableOffset header)
 		offsetSize       = (absoluteOffset, fromIntegral (batSize + maybe 0 (const 512) batmapHeader + batmapSize))

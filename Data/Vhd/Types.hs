@@ -1,4 +1,4 @@
-module Data.VHD.Types where
+module Data.Vhd.Types where
 
 import Control.Exception
 import Control.Monad

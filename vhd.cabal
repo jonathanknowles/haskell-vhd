@@ -31,16 +31,17 @@ Library
                    , cereal
                    , random
                    , storable-endian
-  Exposed-modules:   Data.VHD
-  Other-modules:     Data.VHD.Bat
-                     Data.VHD.Bitmap
-                     Data.VHD.Block
-                     Data.VHD.Checksum
-                     Data.VHD.Context
-                     Data.VHD.Geometry
-                     Data.VHD.Serialize
-                     Data.VHD.Types
-                     Data.VHD.Utils
+  Exposed-modules:   Data.Vhd
+  Other-modules:     Data.BitSet
+                     Data.Vhd.Bat
+                     Data.Vhd.Bitmap
+                     Data.Vhd.Block
+                     Data.Vhd.Checksum
+                     Data.Vhd.Node
+                     Data.Vhd.Geometry
+                     Data.Vhd.Serialize
+                     Data.Vhd.Types
+                     Data.Vhd.Utils
 
 Executable           Tests
   Main-Is:           Tests.hs

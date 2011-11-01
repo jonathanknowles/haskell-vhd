@@ -1,43 +1,76 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Data.VHD
+{-# LANGUAGE TupleSections     #-}
+
+module Data.Vhd
 	( create
 	, CreateParameters (..)
 	, defaultCreateParameters
 	, getInfo
 	-- * block related operations
 	, Block
-	, readBlock
-	, writeBlock
+	, readDataRange
+	, writeDataRange
 	, withBlock
-	-- * ctx related operations
-	, Context (..)
-	, withVhdContext
+	-- * node related operations
+	, VhdNode (..)
+	, withVhdNode
 	, appendEmptyBlock
 	-- * exported Types
-	, module Data.VHD.Types
+	, module Data.Vhd.Types
 	) where
 
 import Control.Applicative
 import Control.Exception
 import Control.Monad
+import Data.BitSet
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Internal as B
+import qualified Data.ByteString.Unsafe as B
 import Data.ByteString.Char8 ()
 import Data.Serialize
-import Data.VHD.Serialize
-import Data.VHD.Types
-import Data.VHD.Bat
-import Data.VHD.Block
-import Data.VHD.Context
-import Data.VHD.Utils
-import Data.VHD.Geometry
-import Data.VHD.Checksum
+import Data.Vhd.Serialize
+import Data.Vhd.Types
+import Data.Vhd.Bat
+import Data.Vhd.Block
+import Data.Vhd.Node
+import Data.Vhd.Utils
+import Data.Vhd.Geometry
+import Data.Vhd.Checksum
 import Data.Bits
 import Data.Maybe
 import Data.Word
 import Data.Time.Clock.POSIX
+import Foreign.C.String
+import Foreign.C.Types
+import Foreign.Ptr
+import Prelude hiding (subtract)
 
 import System.IO
+
+data Vhd = Vhd
+	{ vhdBlockCount :: Word32
+	, vhdBlockSize  :: BlockSize
+	, vhdNodes      :: [VhdNode]
+	}
+
+withVhd :: FilePath -> (Vhd -> IO a) -> IO a
+withVhd = withVhdInner [] where
+	withVhdInner accumulatedNodes filePath f =
+		withVhdNode filePath $ \node ->
+			if diskType node == DiskTypeDifferencing
+				then withVhdInner (node : accumulatedNodes) (parentPath node) f
+				else f $ Vhd
+					-- TODO: require consistent block count and size across all nodes.
+					{ vhdBlockCount = blockCount node
+					, vhdBlockSize  = blockSize  node
+					, vhdNodes      = reverse $ node : accumulatedNodes
+					}
+	blockCount node = headerMaxTableEntries $ nodeHeader node
+	blockSize  node = headerBlockSize       $ nodeHeader node
+	diskType   node = footerDiskType        $ nodeFooter node
+	parentPath node = p where
+		ParentUnicodeName p = headerParentUnicodeName $ nodeHeader node
 
 data CreateParameters = CreateParameters
 	{ blockSize :: BlockSize
@@ -145,3 +178,63 @@ create' filePath createParams =
 			, headerParentUnicodeName    = parentUnicodeName ""
 			, headerParentLocatorEntries = parentLocatorEntries $ replicate 8 (ParentLocatorEntry $ B.replicate 24 0)
 			}
+
+-- | Reads raw data from a VHD chain.
+read :: Vhd -> Word64 -> Int -> IO B.ByteString
+read context byteOffset length = undefined
+
+-- | Writes raw data to a VHD chain.
+write :: Vhd -> Word64 -> B.ByteString -> IO ()
+write context byteOffset rawData = undefined
+
+copySubString :: CString -> CString -> CSize -> Int -> IO ()
+copySubString source target length offset =
+	B.memcpy (target `plusPtr` offset) (source `plusPtr` offset) length
+
+-- | Reads a complete block from a VHD chain.
+readBlock :: Vhd -> Int -> IO B.ByteString
+readBlock vhd blockNumber =
+		-- To do: modify this function so that it can read a sub-block.
+		-- To do: reduce the use of intermediate data structures.
+		fmap (updateResultWithNodeOffsets sectorsToRead) nodeOffsets >>
+		return result
+	where
+		result = B.replicate (fromIntegral blockSize) 0
+		blockSize = vhdBlockSize vhd
+		sectorsToRead = fromRange 0 $ fromIntegral $ blockSize `div` sectorLength
+
+		nodeOffsets :: IO [(VhdNode, Word32)]
+		nodeOffsets = fmap catMaybes $ mapM maybeNodeOffset $ vhdNodes vhd
+
+		maybeNodeOffset :: VhdNode -> IO (Maybe (VhdNode, Word32))
+		maybeNodeOffset node =
+			(fmap . fmap) (node, ) $ batReadMaybe (nodeBat node) blockNumber
+
+		updateResultWithNodeOffsets :: BitSet -> [(VhdNode, Word32)] -> IO ()
+		updateResultWithNodeOffsets _ [] = return ()
+		updateResult sectorsMissing (nodeOffset : tail) =
+			if Data.BitSet.isEmpty sectorsMissing then return () else do
+			sectorsStillMissing <- updateResultWithNodeOffset sectorsMissing nodeOffset
+			updateResult sectorsStillMissing tail
+
+		updateResultWithNodeOffset :: BitSet -> (VhdNode, Word32) -> IO BitSet
+		updateResultWithNodeOffset sectorsMissing (node, offset) =
+			withBlock (nodeFilePath node) blockSize offset $ \block -> do
+				deltaBitmap <- readBitmap block
+				delta <- readData block
+				let deltaSectorsPresent = fromByteString deltaBitmap
+				let sectorsToCopy = sectorsMissing `intersect` deltaSectorsPresent
+				let sectorsStillMissing = sectorsMissing `subtract` deltaSectorsPresent
+				updateResultWithDelta delta sectorsToCopy
+				return sectorsStillMissing
+
+		updateResultWithDelta :: B.ByteString -> BitSet -> IO ()
+		updateResultWithDelta delta sectorsToCopy =
+			B.unsafeUseAsCString result  $ \resultPtr  ->
+				B.unsafeUseAsCString delta $ \deltaPtr ->
+					copySectors resultPtr deltaPtr
+			where
+				copySectors source target = forM_
+					(map offsetOfSector $ toList sectorsToCopy)
+					(copySubString source target $ fromIntegral sectorLength)
+				offsetOfSector = (*) $ fromIntegral sectorLength
