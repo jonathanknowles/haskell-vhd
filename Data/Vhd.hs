@@ -181,11 +181,11 @@ create' filePath createParams =
 
 -- | Reads raw data from a VHD chain.
 read :: Vhd -> Word64 -> Int -> IO B.ByteString
-read context byteOffset length = undefined
+read vhd byteOffset length = undefined
 
 -- | Writes raw data to a VHD chain.
 write :: Vhd -> Word64 -> B.ByteString -> IO ()
-write context byteOffset rawData = undefined
+write vhd byteOffset rawData = undefined
 
 copySubString :: CString -> CString -> CSize -> Int -> IO ()
 copySubString source target length offset =
