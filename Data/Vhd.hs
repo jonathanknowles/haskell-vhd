@@ -54,6 +54,9 @@ data Vhd = Vhd
 	, vhdNodes      :: [VhdNode]
 	}
 
+vhdLength :: Vhd -> Word64
+vhdLength vhd = fromIntegral (vhdBlockCount vhd) * fromIntegral (vhdBlockSize vhd)
+
 withVhd :: FilePath -> (Vhd -> IO a) -> IO a
 withVhd = withVhdInner [] where
 	withVhdInner accumulatedNodes filePath f =
@@ -180,8 +183,23 @@ create' filePath createParams =
 			}
 
 -- | Reads raw data from a VHD chain.
-read :: Vhd -> Word64 -> Int -> IO B.ByteString
-read vhd byteOffset length = undefined
+read :: Vhd -> Word64 -> Word64 -> IO BL.ByteString
+read vhd inclusiveLowerBoundBytes exclusiveUpperBoundBytes
+	| lo < 0   = error "lower bound cannot be less than zero."
+	| lo > hi  = error "lower bound cannot be greater than upper bound."
+	| hi > max = error "upper bound cannot be greater than VHD length."
+	| otherwise   = fmap (trim . BL.fromChunks) (sequence blocks)
+		where
+			(lo, hi)   = (inclusiveLowerBoundBytes, exclusiveUpperBoundBytes)
+			max        = vhdLength vhd
+			blocks     = map (readBlock vhd) [blockFirst .. blockLast]
+			blockFirst = fromIntegral $ (lo    ) `div` blockSize
+			blockLast  = fromIntegral $ (hi - 1) `div` blockSize
+			blockSize  = fromIntegral $ vhdBlockSize vhd
+			trim       =  BL.take toTake . BL.drop toDrop
+				where
+					toTake = fromIntegral $ hi - lo
+					toDrop = fromIntegral $ lo `mod` blockSize
 
 -- | Writes raw data to a VHD chain.
 write :: Vhd -> Word64 -> B.ByteString -> IO ()
