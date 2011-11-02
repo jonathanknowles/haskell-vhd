@@ -185,10 +185,10 @@ create' filePath createParams =
 -- | Reads raw data from a VHD chain.
 read :: Vhd -> Word64 -> Word64 -> IO BL.ByteString
 read vhd inclusiveLowerBoundBytes exclusiveUpperBoundBytes
-	| lo < 0   = error "lower bound cannot be less than zero."
-	| lo > hi  = error "lower bound cannot be greater than upper bound."
-	| hi > max = error "upper bound cannot be greater than VHD length."
-	| otherwise   = fmap (trim . BL.fromChunks) (sequence blocks)
+	| lo < 0    = error "lower bound cannot be less than zero."
+	| lo > hi   = error "lower bound cannot be greater than upper bound."
+	| hi > max  = error "upper bound cannot be greater than VHD length."
+	| otherwise = fmap (trim . BL.fromChunks) (sequence blocks)
 		where
 			(lo, hi)   = (inclusiveLowerBoundBytes, exclusiveUpperBoundBytes)
 			max        = vhdLength vhd
