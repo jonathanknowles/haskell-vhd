@@ -74,28 +74,24 @@ cmdConvert [fileRaw, fileVhd, size] = do
 		{ size = read size * 1024 * 1024
 		, useBatmap = True
 		}
-	withVhdNode fileVhd $ \node -> do
-		withFile fileRaw ReadMode $ \handle -> do
-			loop node handle 0
-	where
-		loop node handle offset = do
+	withVhdNode fileVhd $ \node -> withFile fileRaw ReadMode $ \handle ->
+		let loop offset = do
 			srcblock <- B.hGet handle (fromIntegral blockSize)
-			if B.null srcblock
-				then return ()
-				else do
-					unless (isBlockZero srcblock) $ do
-						let blockNb = offset `div` fromIntegral blockSize
-						appendEmptyBlock node blockNb
-						sectorOff <- batRead (nodeBat node) blockNb
-						withBlock (nodeFilePath node) (headerBlockSize $ nodeHeader node) sectorOff $ \block ->
-							writeDataRange block srcblock 0
-						putStrLn ("block " ++ show (offset `div` fromIntegral blockSize) ++ " written")
-					-- do something with block
-					loop node handle (offset + fromIntegral (B.length srcblock))
-
-
+			unless (B.null srcblock) $ do
+				unless (isBlockZero srcblock) $ do
+					let blockNb = offset `div` fromIntegral blockSize
+					appendEmptyBlock node blockNb
+					sectorOff <- batRead (nodeBat node) blockNb
+					withBlock (nodeFilePath node) (headerBlockSize $ nodeHeader node) sectorOff $ \block ->
+						writeDataRange block srcblock 0
+					putStrLn ("block " ++ show (offset `div` fromIntegral blockSize) ++ " written")
+				-- do something with block
+				loop (offset + fromIntegral (B.length srcblock))
+		in loop 0
+	where
 		isBlockZero = B.all ((==) 0)
 		blockSize = 2 * 1024 * 1024
+
 cmdConvert _ = error "usage: convert <raw file> <vhd file> <size MiB>"
 
 main = do
