@@ -88,7 +88,7 @@ cmdConvert [fileRaw, fileVhd, size] = do
 						appendEmptyBlock node blockNb
 						sectorOff <- batRead (nodeBat node) blockNb
 						withBlock (nodeFilePath node) (headerBlockSize $ nodeHeader node) sectorOff $ \block ->
-							writeBlock block srcblock 0
+							writeDataRange block srcblock 0
 						putStrLn ("block " ++ show (offset `div` fromIntegral blockSize) ++ " written")
 					-- do something with block
 					loop node handle (offset + fromIntegral (B.length srcblock))
