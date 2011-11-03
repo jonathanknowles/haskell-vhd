@@ -6,6 +6,9 @@ module Data.Vhd
 	, CreateParameters (..)
 	, defaultCreateParameters
 	, getInfo
+	, readData
+	, readDataRange
+	, writeDataRange
 	, module Data.Vhd.Types
 	) where
 
@@ -20,7 +23,7 @@ import Data.Maybe
 import Data.Serialize
 import Data.Time.Clock.POSIX
 import Data.Vhd.Bat
-import Data.Vhd.Block hiding (readData, readDataRange)
+import Data.Vhd.Block hiding (readData, readDataRange, writeDataRange)
 import qualified Data.Vhd.Block as VB
 import Data.Vhd.Checksum
 import Data.Vhd.Geometry

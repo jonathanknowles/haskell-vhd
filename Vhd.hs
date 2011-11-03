@@ -4,7 +4,7 @@ import Data.Char
 import Data.IORef
 import Data.Vhd
 import Data.Vhd.Bat
-import Data.Vhd.Block
+import qualified Data.Vhd.Block as Block
 import Data.Vhd.Checksum
 import Data.Vhd.Node
 import Data.Vhd.Types
@@ -30,8 +30,8 @@ cmdConvert [fileRaw, fileVhd, size] = do
 						let blockNb = offset `div` fromIntegral blockSize
 						appendEmptyBlock node blockNb
 						sectorOff <- batRead (nodeBat node) blockNb
-						withBlock (nodeFilePath node) (headerBlockSize $ nodeHeader node) sectorOff $ \block ->
-							writeDataRange block srcblock 0
+						Block.withBlock (nodeFilePath node) (headerBlockSize $ nodeHeader node) sectorOff $ \block ->
+							Block.writeDataRange block srcblock 0
 						putStrLn ("block " ++ show (offset `div` fromIntegral blockSize) ++ " written")
 					-- do something with block
 					loop node handle (offset + fromIntegral (B.length srcblock))
