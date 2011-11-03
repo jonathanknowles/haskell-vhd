@@ -1,5 +1,6 @@
 import Control.Monad
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as BL
 import Data.Char
 import Data.IORef
 import Data.Vhd
@@ -41,6 +42,9 @@ cmdConvert _ = error "usage: convert <raw file> <vhd file> <size MiB>"
 
 cmdCreate [name, size] = create name $ defaultCreateParameters { size = (read size) * 1024 * 1024, useBatmap = True }
 cmdCreate _            = error "usage: create <name> <size MiB>"
+
+cmdExtract [fileRaw, fileVhd] = withVhd fileVhd $ readData >=> BL.writeFile fileRaw
+cmdExtract _                  = error "usage: extract <vhd file> <raw file>"
 
 cmdPropGet [file, key] = withVhdNode file $ \node -> do
 	case map toLower key of
@@ -99,5 +103,6 @@ main = do
 	case args of
 		"convert" :xs -> cmdConvert xs
 		"create"  :xs -> cmdCreate  xs
+		"extract" :xs -> cmdExtract xs
 		"prop-get":xs -> cmdPropGet xs
 		"read"    :xs -> cmdRead    xs
