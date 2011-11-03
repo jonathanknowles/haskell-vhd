@@ -224,10 +224,10 @@ readDataBlock vhd blockNumber =
 
 		updateResultWithNodeOffsets :: BitSet -> [(VhdNode, Word32)] -> IO ()
 		updateResultWithNodeOffsets _ [] = return ()
-		updateResult sectorsMissing (nodeOffset : tail) =
+		updateResultWithNodeOffsets sectorsMissing (nodeOffset : tail) =
 			if Data.BitSet.isEmpty sectorsMissing then return () else do
 			sectorsStillMissing <- updateResultWithNodeOffset sectorsMissing nodeOffset
-			updateResult sectorsStillMissing tail
+			updateResultWithNodeOffsets sectorsStillMissing tail
 
 		updateResultWithNodeOffset :: BitSet -> (VhdNode, Word32) -> IO BitSet
 		updateResultWithNodeOffset sectorsMissing (node, offset) =

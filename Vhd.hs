@@ -43,7 +43,7 @@ cmdConvert _ = error "usage: convert <raw file> <vhd file> <size MiB>"
 cmdCreate [name, size] = create name $ defaultCreateParameters { size = (read size) * 1024 * 1024, useBatmap = True }
 cmdCreate _            = error "usage: create <name> <size MiB>"
 
-cmdExtract [fileRaw, fileVhd] = withVhd fileVhd $ readData >=> BL.writeFile fileRaw
+cmdExtract [fileVhd, fileRaw] = withVhd fileVhd $ readData >=> BL.writeFile fileRaw
 cmdExtract _                  = error "usage: extract <vhd file> <raw file>"
 
 cmdPropGet [file, key] = withVhdNode file $ \node -> do
