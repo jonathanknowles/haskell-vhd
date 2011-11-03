@@ -9,6 +9,7 @@ module Data.Vhd
 	, readData
 	, readDataRange
 	, writeDataRange
+	, withVhd
 	, module Data.Vhd.Types
 	) where
 
