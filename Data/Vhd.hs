@@ -20,7 +20,8 @@ import Data.Maybe
 import Data.Serialize
 import Data.Time.Clock.POSIX
 import Data.Vhd.Bat
-import Data.Vhd.Block
+import Data.Vhd.Block hiding (readData, readDataRange)
+import qualified Data.Vhd.Block as VB
 import Data.Vhd.Checksum
 import Data.Vhd.Geometry
 import Data.Vhd.Node
@@ -167,9 +168,13 @@ create' filePath createParams =
 			, headerParentLocatorEntries = parentLocatorEntries $ replicate 8 (ParentLocatorEntry $ B.replicate 24 0)
 			}
 
--- | Reads raw data from a VHD chain.
-read :: Vhd -> Word64 -> Word64 -> IO BL.ByteString
-read vhd inclusiveLowerBoundBytes exclusiveUpperBoundBytes
+-- | Reads all raw data from the given VHD.
+readData :: Vhd -> IO BL.ByteString
+readData vhd = readDataRange vhd 0 (vhdLength vhd)
+
+-- | Reads raw data from within the given byte range of the given VHD.
+readDataRange :: Vhd -> Word64 -> Word64 -> IO BL.ByteString
+readDataRange vhd inclusiveLowerBoundBytes exclusiveUpperBoundBytes
 	| lo < 0    = error "lower bound cannot be less than zero."
 	| lo > hi   = error "lower bound cannot be greater than upper bound."
 	| hi > max  = error "upper bound cannot be greater than VHD length."
@@ -177,7 +182,7 @@ read vhd inclusiveLowerBoundBytes exclusiveUpperBoundBytes
 		where
 			(lo, hi)   = (inclusiveLowerBoundBytes, exclusiveUpperBoundBytes)
 			max        = vhdLength vhd
-			blocks     = map (readBlock vhd) [blockFirst .. blockLast]
+			blocks     = map (readDataBlock vhd) [blockFirst .. blockLast]
 			blockFirst = fromIntegral $ (lo    ) `div` blockSize
 			blockLast  = fromIntegral $ (hi - 1) `div` blockSize
 			blockSize  = fromIntegral $ vhdBlockSize vhd
@@ -186,17 +191,17 @@ read vhd inclusiveLowerBoundBytes exclusiveUpperBoundBytes
 					toTake = fromIntegral $ hi - lo
 					toDrop = fromIntegral $ lo `mod` blockSize
 
--- | Writes raw data to a VHD chain.
-write :: Vhd -> Word64 -> B.ByteString -> IO ()
-write vhd byteOffset rawData = undefined
+-- | Writes raw data to the given VHD.
+writeDataRange :: Vhd -> Word64 -> B.ByteString -> IO ()
+writeDataRange vhd byteOffset rawData = undefined
 
 copySubString :: CString -> CString -> CSize -> Int -> IO ()
 copySubString source target length offset =
 	B.memcpy (target `plusPtr` offset) (source `plusPtr` offset) length
 
--- | Reads a complete block from a VHD chain.
-readBlock :: Vhd -> Int -> IO B.ByteString
-readBlock vhd blockNumber =
+-- | Reads raw data from within the given block of the given VHD.
+readDataBlock :: Vhd -> Int -> IO B.ByteString
+readDataBlock vhd blockNumber =
 		-- To do: modify this function so that it can read a sub-block.
 		-- To do: reduce the use of intermediate data structures.
 		fmap (updateResultWithNodeOffsets sectorsToRead) nodeOffsets >>
@@ -223,8 +228,8 @@ readBlock vhd blockNumber =
 		updateResultWithNodeOffset :: BitSet -> (VhdNode, Word32) -> IO BitSet
 		updateResultWithNodeOffset sectorsMissing (node, offset) =
 			withBlock (nodeFilePath node) blockSize offset $ \block -> do
-				deltaBitmap <- readBitmap block
-				delta <- readData block
+				deltaBitmap <- VB.readBitmap block
+				delta <- VB.readData block
 				let deltaSectorsPresent = fromByteString deltaBitmap
 				let sectorsToCopy = sectorsMissing `intersect` deltaSectorsPresent
 				let sectorsStillMissing = sectorsMissing `subtract` deltaSectorsPresent
