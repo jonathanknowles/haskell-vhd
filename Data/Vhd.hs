@@ -6,46 +6,31 @@ module Data.Vhd
 	, CreateParameters (..)
 	, defaultCreateParameters
 	, getInfo
-	-- * block related operations
-	, Block
-	, readDataRange
-	, writeDataRange
-	, withBlock
-	-- * node related operations
-	, VhdNode (..)
-	, withVhdNode
-	, appendEmptyBlock
-	-- * exported Types
 	, module Data.Vhd.Types
 	) where
 
 import Control.Applicative
-import Control.Exception
 import Control.Monad
 import Data.BitSet
-import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Internal as B
 import qualified Data.ByteString.Unsafe as B
-import Data.ByteString.Char8 ()
+import Data.Maybe
 import Data.Serialize
-import Data.Vhd.Serialize
-import Data.Vhd.Types
+import Data.Time.Clock.POSIX
 import Data.Vhd.Bat
 import Data.Vhd.Block
-import Data.Vhd.Node
-import Data.Vhd.Utils
-import Data.Vhd.Geometry
 import Data.Vhd.Checksum
-import Data.Bits
-import Data.Maybe
+import Data.Vhd.Geometry
+import Data.Vhd.Node
+import Data.Vhd.Types
+import Data.Vhd.Utils
 import Data.Word
-import Data.Time.Clock.POSIX
 import Foreign.C.String
 import Foreign.C.Types
 import Foreign.Ptr
 import Prelude hiding (subtract)
-
 import System.IO
 
 data Vhd = Vhd
