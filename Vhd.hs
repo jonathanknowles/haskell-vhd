@@ -16,7 +16,7 @@ import Text.Printf
 cmdConvert [fileRaw, fileVhd, size] = do
 	create fileVhd $ defaultCreateParameters
 		{ size = read size * 1024 * 1024
-		, useBatmap = True
+		, useBatmap = False
 		}
 	withVhdNode fileVhd $ \node -> do
 		withFile fileRaw ReadMode $ \handle -> do
