@@ -208,7 +208,7 @@ readDataBlock :: Vhd -> Int -> IO B.ByteString
 readDataBlock vhd blockNumber =
 		-- To do: modify this function so that it can read a sub-block.
 		-- To do: reduce the use of intermediate data structures.
-		fmap (updateResultWithNodeOffsets sectorsToRead) nodeOffsets >>
+		(updateResultWithNodeOffsets sectorsToRead =<< nodeOffsets) >>
 		return result
 	where
 		result = B.replicate (fromIntegral blockSize) 0
@@ -244,7 +244,7 @@ readDataBlock vhd blockNumber =
 		updateResultWithDelta delta sectorsToCopy =
 			B.unsafeUseAsCString result  $ \resultPtr  ->
 				B.unsafeUseAsCString delta $ \deltaPtr ->
-					copySectors resultPtr deltaPtr
+					copySectors deltaPtr resultPtr
 			where
 				copySectors source target = forM_
 					(map offsetOfSector $ toList sectorsToCopy)
