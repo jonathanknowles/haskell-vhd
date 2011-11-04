@@ -199,54 +199,57 @@ readDataRange vhd inclusiveLowerBoundBytes exclusiveUpperBoundBytes
 writeDataRange :: Vhd -> Word64 -> B.ByteString -> IO ()
 writeDataRange vhd byteOffset rawData = undefined
 
-copySubString :: CString -> CString -> CSize -> Int -> IO ()
-copySubString source target length offset =
-	B.memcpy (target `plusPtr` offset) (source `plusPtr` offset) length
-
 -- | Reads raw data from within the given block of the given VHD.
 readDataBlock :: Vhd -> Int -> IO B.ByteString
 readDataBlock vhd blockNumber =
-		-- To do: modify this function so that it can read a sub-block.
-		-- To do: reduce the use of intermediate data structures.
-		(updateResultWithNodeOffsets sectorsToRead =<< nodeOffsets) >>
-		return result
-	where
-		result = B.replicate (fromIntegral blockSize) 0
-		blockSize = vhdBlockSize vhd
-		sectorsToRead = fromRange 0 $ fromIntegral $ blockSize `div` sectorLength
+	B.create
+		(fromIntegral $ vhdBlockSize vhd)
+		(\resultPtr -> readDataBlockInternal (castPtr resultPtr) vhd blockNumber)
 
-		nodeOffsets :: IO [(VhdNode, Word32)]
-		nodeOffsets = fmap catMaybes $ mapM maybeNodeOffset $ vhdNodes vhd
+readDataBlockInternal :: CString -> Vhd -> Int -> IO ()
+readDataBlockInternal resultPtr vhd blockNumber = updateResult where
 
-		maybeNodeOffset :: VhdNode -> IO (Maybe (VhdNode, Word32))
-		maybeNodeOffset node =
-			(fmap . fmap) (node, ) $ batReadMaybe (nodeBat node) blockNumber
+	-- To do: modify this function so that it can read a sub-block.
+	-- To do: reduce the use of intermediate data structures.
 
-		updateResultWithNodeOffsets :: BitSet -> [(VhdNode, Word32)] -> IO ()
-		updateResultWithNodeOffsets _ [] = return ()
-		updateResultWithNodeOffsets sectorsMissing (nodeOffset : tail) =
-			if Data.BitSet.isEmpty sectorsMissing then return () else do
-			sectorsStillMissing <- updateResultWithNodeOffset sectorsMissing nodeOffset
-			updateResultWithNodeOffsets sectorsStillMissing tail
+	blockSize = vhdBlockSize vhd
+	sectorsToRead = fromRange 0 $ fromIntegral $ blockSize `div` sectorLength
 
-		updateResultWithNodeOffset :: BitSet -> (VhdNode, Word32) -> IO BitSet
-		updateResultWithNodeOffset sectorsMissing (node, offset) =
-			withBlock (nodeFilePath node) blockSize offset $ \block -> do
-				deltaBitmap <- VB.readBitmap block
-				delta <- VB.readData block
-				let deltaSectorsPresent = fromByteString deltaBitmap
-				let sectorsToCopy = sectorsMissing `intersect` deltaSectorsPresent
-				let sectorsStillMissing = sectorsMissing `subtract` deltaSectorsPresent
-				updateResultWithDelta delta sectorsToCopy
-				return sectorsStillMissing
+	nodeOffsets :: IO [(VhdNode, Word32)]
+	nodeOffsets = fmap catMaybes $ mapM maybeNodeOffset $ vhdNodes vhd
 
-		updateResultWithDelta :: B.ByteString -> BitSet -> IO ()
-		updateResultWithDelta delta sectorsToCopy =
-			B.unsafeUseAsCString result  $ \resultPtr  ->
-				B.unsafeUseAsCString delta $ \deltaPtr ->
-					copySectors deltaPtr resultPtr
-			where
-				copySectors source target = forM_
-					(map offsetOfSector $ toList sectorsToCopy)
-					(copySubString source target $ fromIntegral sectorLength)
-				offsetOfSector = (*) $ fromIntegral sectorLength
+	maybeNodeOffset :: VhdNode -> IO (Maybe (VhdNode, Word32))
+	maybeNodeOffset node =
+		(fmap . fmap) (node, ) $ batReadMaybe (nodeBat node) blockNumber
+
+	updateResult :: IO ()
+	updateResult = updateResultWithNodeOffsets sectorsToRead =<< nodeOffsets
+
+	updateResultWithNodeOffsets :: BitSet -> [(VhdNode, Word32)] -> IO ()
+	updateResultWithNodeOffsets _ [] = return ()
+	updateResultWithNodeOffsets sectorsMissing (nodeOffset : tail) =
+		if Data.BitSet.isEmpty sectorsMissing then return () else do
+		sectorsStillMissing <- updateResultWithNodeOffset sectorsMissing nodeOffset
+		updateResultWithNodeOffsets sectorsStillMissing tail
+
+	updateResultWithNodeOffset :: BitSet -> (VhdNode, Word32) -> IO BitSet
+	updateResultWithNodeOffset sectorsMissing (node, offset) =
+		withBlock (nodeFilePath node) blockSize offset $ \block -> do
+			deltaBitmap <- VB.readBitmap block
+			delta <- VB.readData block
+			let deltaSectorsPresent = fromByteString deltaBitmap
+			let sectorsToCopy = sectorsMissing `intersect` deltaSectorsPresent
+			let sectorsStillMissing = sectorsMissing `subtract` deltaSectorsPresent
+			updateResultWithDelta delta sectorsToCopy
+			return sectorsStillMissing
+
+	updateResultWithDelta :: B.ByteString -> BitSet -> IO ()
+	updateResultWithDelta delta sectorsToCopy =
+		B.unsafeUseAsCString delta $ \deltaPtr -> forM_
+			(map offsetOfSector $ toList sectorsToCopy)
+			(copySubString deltaPtr resultPtr $ fromIntegral sectorLength)
+		where offsetOfSector = (*) $ fromIntegral sectorLength
+
+copySubString :: CString -> CString -> CSize -> Int -> IO ()
+copySubString source target length offset =
+	B.memcpy (target `plusPtr` offset) (source `plusPtr` offset) length
