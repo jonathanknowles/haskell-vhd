@@ -3,12 +3,12 @@ module Data.Vhd.Types where
 import Control.Exception
 import Control.Monad
 import qualified Data.ByteString as B
+import Data.List
+import qualified Data.Text as T
+import Data.Text.Encoding
 import Data.Word
 import System.Random
 import Text.Printf
-import Data.List
-import Data.Text.Encoding
-import qualified Data.Text as T
 
 data Header = Header
 	{ headerCookie               :: Cookie
