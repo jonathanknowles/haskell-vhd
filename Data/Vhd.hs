@@ -238,8 +238,8 @@ readDataBlockInternal resultPtr vhd blockNumber blockSize = buildResult where
 			processNodeOffsets sectorsStillMissing tail
 
 		processNodeOffset :: BitSet -> (VhdNode, Word32) -> IO BitSet
-		processNodeOffset sectorsMissing (node, offset) =
-			withBlock (nodeFilePath node) blockSize offset $ \block -> do
+		processNodeOffset sectorsMissing (node, sectorOffset) =
+			withBlock (nodeFilePath node) blockSize sectorOffset $ \block -> do
 				deltaBitmap <- VB.readBitmap block
 				delta <- VB.readData block
 				let deltaSectorsPresent = fromByteString deltaBitmap
