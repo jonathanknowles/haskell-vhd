@@ -9,19 +9,16 @@ module Data.Vhd.Bat
 	, batUpdateChecksum
 	) where
 
-import Data.Word
+import Control.Monad
 import Data.Bits
 import Data.Storable.Endian
+import Data.Word
 import Foreign.Ptr
 import Foreign.Storable
-
-import Data.Vhd.Types
-import Data.Vhd.Serialize
-import Data.Vhd.Utils
 import Data.Vhd.Bitmap
-
-import Control.Monad
-
+import Data.Vhd.Serialize
+import Data.Vhd.Types
+import Data.Vhd.Utils
 import System.IO.MMap
 
 data Bat      = Bat BatStart BatEnd (Maybe Batmap)
