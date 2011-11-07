@@ -11,23 +11,17 @@ module Data.Vhd.Block
 	, sectorLength
 	) where
 
-import Foreign.Ptr
-import Foreign.Storable
-import Data.Word
-import Data.Bits
-
-import Data.Vhd.Utils
-import Data.Vhd.Types
-import Data.Vhd.Bat
-import Data.Vhd.Bitmap
-
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Unsafe as B
 import qualified Data.ByteString.Internal as B
-
-import Control.Monad
-
+import Data.Vhd.Bat
+import Data.Vhd.Bitmap
+import Data.Vhd.Types
+import Data.Vhd.Utils
+import Data.Word
+import Foreign.Ptr
+import Foreign.Storable
 import System.IO.MMap
 
 data Block = Block BlockSize (Ptr Word8)
