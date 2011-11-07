@@ -49,6 +49,11 @@ vhdLength vhd = fromIntegral (vhdBlockCount vhd) * fromIntegral (vhdBlockSize vh
 
 withVhd :: FilePath -> (Vhd -> IO a) -> IO a
 withVhd = withVhdInner [] where
+
+	blockCount node = headerMaxTableEntries $ nodeHeader node
+	blockSize  node = headerBlockSize       $ nodeHeader node
+	diskType   node = footerDiskType        $ nodeFooter node
+
 	withVhdInner accumulatedNodes filePath f =
 		withVhdNode filePath $ \node ->
 			if diskType node == DiskTypeDifferencing
@@ -59,11 +64,8 @@ withVhd = withVhdInner [] where
 					, vhdBlockSize  = blockSize  node
 					, vhdNodes      = reverse $ node : accumulatedNodes
 					}
-	blockCount node = headerMaxTableEntries $ nodeHeader node
-	blockSize  node = headerBlockSize       $ nodeHeader node
-	diskType   node = footerDiskType        $ nodeFooter node
-	parentPath node = p where
-		ParentUnicodeName p = headerParentUnicodeName $ nodeHeader node
+		where parentPath node = resolveColocatedFilePath filePath p
+			where ParentUnicodeName p = headerParentUnicodeName $ nodeHeader node
 
 data CreateParameters = CreateParameters
 	{ blockSize :: BlockSize

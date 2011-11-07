@@ -1,5 +1,6 @@
 module Data.Vhd.Utils
 	( divRoundUp
+	, resolveColocatedFilePath
 	, roundUpToModulo
 	, hAlign
 	) where
@@ -7,8 +8,15 @@ module Data.Vhd.Utils
 import Control.Monad (unless)
 import System.IO
 import qualified Data.ByteString as B
+import System.FilePath.Posix
 
 divRoundUp a b = let (d, m) = a `divMod` b in d + if m > 0 then 1 else 0
+
+resolveColocatedFilePath :: FilePath -> FilePath -> FilePath
+resolveColocatedFilePath baseFilePath colocatedFilePath =
+	if isAbsolute colocatedFilePath
+		then colocatedFilePath
+		else takeDirectory baseFilePath </> colocatedFilePath
 
 roundUpToModulo n m
 	| n `mod` m == 0 = n
