@@ -227,8 +227,8 @@ readDataBlockInternal resultPtr vhd blockNumber blockSize = buildResult where
 
 		nodeOffsets :: IO [(VhdNode, Word32)]
 		nodeOffsets = fmap catMaybes $ mapM maybeNodeOffset $ vhdNodes vhd where
-			maybeNodeOffset node =
-				(fmap . fmap) (node, ) $ batReadMaybe (nodeBat node) blockNumber
+			maybeNodeOffset node = (fmap . fmap) (node, ) $
+				sectorOffsetOfBlockNumber (nodeBat node) blockNumber
 
 		processNodeOffsets :: BitSet -> [(VhdNode, Word32)] -> IO ()
 		processNodeOffsets _ [] = return ()
