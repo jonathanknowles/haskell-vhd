@@ -72,8 +72,6 @@ readData block = readDataRange block 0 (fromIntegral $ blockSizeOfBlock block)
 
 readDataRange :: Block -> Int -> Int -> IO ByteString
 readDataRange block offsetStart offsetEnd = do
-	-- for the moment, assume we're reading from a dynamic disk.
-	-- later on, we'll also need to handle differencing disks here.
 	B.create length (\bsptr -> B.memcpy (castPtr bsptr) (dataPtr `plusPtr` offsetStart) (fromIntegral length))
 	where
 		length       = offsetEnd - offsetStart
