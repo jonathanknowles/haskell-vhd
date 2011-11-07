@@ -217,7 +217,9 @@ readDataBlockInternal resultPtr vhd blockNumber blockSize = buildResult where
 	-- To do: reduce the use of intermediate data structures.
 
 	buildResult :: IO ()
-	buildResult = processNodeOffsets sectorsToRead =<< nodeOffsets where
+	buildResult = do
+		B.memset resultPtr 0 (fromIntegral blockSize)
+		processNodeOffsets sectorsToRead =<< nodeOffsets where
 
 	sectorsToRead = fromRange 0 $ fromIntegral $ blockSize `div` sectorLength
 
