@@ -219,7 +219,7 @@ readDataBlockInternal resultPtr vhd blockNumber blockSize = buildResult where
 	buildResult :: IO ()
 	buildResult = do
 		B.memset resultPtr 0 (fromIntegral blockSize)
-		processNodeOffsets sectorsToRead =<< nodeOffsets where
+		processNodeOffsets sectorsToRead =<< nodeOffsets
 
 	sectorsToRead = fromRange 0 $ fromIntegral $ blockSize `div` sectorLength
 
