@@ -5,14 +5,12 @@ module Data.Vhd.Checksum
 	, verifyHeaderChecksum
 	) where
 
-import Data.Vhd.Types
-import Data.Vhd.Serialize
-
 import Data.Bits
-import Data.Word
-import Data.Serialize
-
 import qualified Data.ByteString as B
+import Data.Serialize
+import Data.Vhd.Serialize
+import Data.Vhd.Types
+import Data.Word
 
 plus :: Checksum -> Word8 -> Checksum
 plus a b = a + fromIntegral b
