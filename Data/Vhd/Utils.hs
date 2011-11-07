@@ -6,9 +6,9 @@ module Data.Vhd.Utils
 	) where
 
 import Control.Monad (unless)
-import System.IO
 import qualified Data.ByteString as B
 import System.FilePath.Posix
+import System.IO
 
 divRoundUp a b = let (d, m) = a `divMod` b in d + if m > 0 then 1 else 0
 
