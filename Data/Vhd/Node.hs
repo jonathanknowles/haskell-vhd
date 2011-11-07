@@ -5,22 +5,18 @@ module Data.Vhd.Node
 	, appendEmptyBlock
 	) where
 
+import Control.Applicative ((<$>))
+import Control.Monad
+import qualified Data.ByteString as B
+import Data.ByteString.Char8 ()
+import Data.IORef
+import Data.Serialize (decode, encode)
 import Data.Vhd.Block
 import Data.Vhd.Bat
 import Data.Vhd.Types
 import Data.Vhd.Utils
 import Data.Vhd.Serialize
-
-import Data.Serialize (decode, encode)
-
-import qualified Data.ByteString as B
-import Data.ByteString.Char8 ()
-import Data.IORef
-
 import System.IO
-
-import Control.Applicative ((<$>))
-import Control.Monad
 
 data VhdNode = VhdNode
 	{ nodeBat      :: Bat
