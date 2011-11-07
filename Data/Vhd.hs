@@ -219,7 +219,7 @@ readDataBlockInternal resultPtr vhd blockNumber blockSize = buildResult where
 	buildResult :: IO ()
 	buildResult = do
 		B.memset resultPtr 0 (fromIntegral blockSize)
-		processNodeOffsets sectorsToRead =<< nodeOffsets
+		copySectorsFromNodes sectorsToRead =<< nodeOffsets
 
 	sectorsToRead = fromRange 0 $ fromIntegral $ blockSize `div` sectorLength
 
@@ -228,27 +228,27 @@ readDataBlockInternal resultPtr vhd blockNumber blockSize = buildResult where
 		maybeNodeOffset node = (fmap . fmap) (node, ) $
 			sectorOffsetOfBlockNumber (nodeBat node) blockNumber
 
-	processNodeOffsets :: BitSet -> [(VhdNode, Word32)] -> IO ()
-	processNodeOffsets sectorsMissing [] = return ()
-	processNodeOffsets sectorsMissing (nodeOffset : tail) =
-		if Data.BitSet.isEmpty sectorsMissing then return () else do
-		sectorsStillMissing <- processNodeOffset sectorsMissing nodeOffset
-		processNodeOffsets sectorsStillMissing tail
+	copySectorsFromNodes :: BitSet -> [(VhdNode, Word32)] -> IO ()
+	copySectorsFromNodes sectorsToCopy [] = return ()
+	copySectorsFromNodes sectorsToCopy (nodeOffset : tail) =
+		if Data.BitSet.isEmpty sectorsToCopy then return () else do
+		sectorsMissing <- copySectorsFromNode sectorsToCopy nodeOffset
+		copySectorsFromNodes sectorsMissing tail
 
-	processNodeOffset :: BitSet -> (VhdNode, Word32) -> IO BitSet
-	processNodeOffset sectorsMissing (node, sectorOffset) =
+	copySectorsFromNode :: BitSet -> (VhdNode, Word32) -> IO BitSet
+	copySectorsFromNode sectorsRequested (node, sectorOffset) =
 		withBlock (nodeFilePath node) blockSize sectorOffset $ \block -> do
 			deltaBitmap <- VB.readBitmap block
 			delta <- VB.readData block
-			let deltaSectorsPresent = fromByteString deltaBitmap
-			let sectorsToCopy = sectorsMissing `intersect` deltaSectorsPresent
-			let sectorsStillMissing = sectorsMissing `subtract` deltaSectorsPresent
+			let sectorsPresent = fromByteString deltaBitmap
+			let sectorsMissing = sectorsRequested `subtract` sectorsPresent
+			let sectorsToCopy = sectorsRequested `intersect` sectorsPresent
 			B.unsafeUseAsCString delta $ \sourcePtr -> mapM_
 				(\offset -> B.memcpy
 					(resultPtr `plusPtr` offset)
 					(sourcePtr `plusPtr` offset)
 					(fromIntegral sectorLength))
 				(map byteOffsetOfSector $ toList sectorsToCopy)
-			return sectorsStillMissing
+			return sectorsMissing
 
 	byteOffsetOfSector = (*) $ fromIntegral sectorLength
