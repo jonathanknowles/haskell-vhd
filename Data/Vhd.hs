@@ -217,37 +217,36 @@ readDataBlockInternal resultPtr vhd blockNumber blockSize = buildResult where
 	-- To do: reduce the use of intermediate data structures.
 
 	buildResult :: IO ()
-	buildResult = withSectors $ \offset sectorPtr ->
-		B.memcpy (resultPtr `plusPtr` offset) sectorPtr (fromIntegral sectorLength)
+	buildResult = processNodeOffsets sectorsToRead =<< nodeOffsets where
 
-	withSectors :: (Int -> Ptr Word8 -> IO ()) -> IO ()
-	withSectors processSector = processNodeOffsets sectorsToRead =<< nodeOffsets where
+	sectorsToRead = fromRange 0 $ fromIntegral $ blockSize `div` sectorLength
 
-		sectorsToRead = fromRange 0 $ fromIntegral $ blockSize `div` sectorLength
+	nodeOffsets :: IO [(VhdNode, Word32)]
+	nodeOffsets = fmap catMaybes $ mapM maybeNodeOffset $ vhdNodes vhd where
+		maybeNodeOffset node = (fmap . fmap) (node, ) $
+			sectorOffsetOfBlockNumber (nodeBat node) blockNumber
 
-		nodeOffsets :: IO [(VhdNode, Word32)]
-		nodeOffsets = fmap catMaybes $ mapM maybeNodeOffset $ vhdNodes vhd where
-			maybeNodeOffset node = (fmap . fmap) (node, ) $
-				sectorOffsetOfBlockNumber (nodeBat node) blockNumber
+	processNodeOffsets :: BitSet -> [(VhdNode, Word32)] -> IO ()
+	processNodeOffsets sectorsMissing [] = return ()
+	processNodeOffsets sectorsMissing (nodeOffset : tail) =
+		if Data.BitSet.isEmpty sectorsMissing then return () else do
+		sectorsStillMissing <- processNodeOffset sectorsMissing nodeOffset
+		processNodeOffsets sectorsStillMissing tail
 
-		processNodeOffsets :: BitSet -> [(VhdNode, Word32)] -> IO ()
-		processNodeOffsets _ [] = return ()
-		processNodeOffsets sectorsMissing (nodeOffset : tail) =
-			if Data.BitSet.isEmpty sectorsMissing then return () else do
-			sectorsStillMissing <- processNodeOffset sectorsMissing nodeOffset
-			processNodeOffsets sectorsStillMissing tail
+	processNodeOffset :: BitSet -> (VhdNode, Word32) -> IO BitSet
+	processNodeOffset sectorsMissing (node, sectorOffset) =
+		withBlock (nodeFilePath node) blockSize sectorOffset $ \block -> do
+			deltaBitmap <- VB.readBitmap block
+			delta <- VB.readData block
+			let deltaSectorsPresent = fromByteString deltaBitmap
+			let sectorsToCopy = sectorsMissing `intersect` deltaSectorsPresent
+			let sectorsStillMissing = sectorsMissing `subtract` deltaSectorsPresent
+			B.unsafeUseAsCString delta $ \sourcePtr -> mapM_
+				(\offset -> B.memcpy
+					(resultPtr `plusPtr` offset)
+					(sourcePtr `plusPtr` offset)
+					(fromIntegral sectorLength))
+				(map byteOffsetOfSector $ toList sectorsToCopy)
+			return sectorsStillMissing
 
-		processNodeOffset :: BitSet -> (VhdNode, Word32) -> IO BitSet
-		processNodeOffset sectorsMissing (node, sectorOffset) =
-			withBlock (nodeFilePath node) blockSize sectorOffset $ \block -> do
-				deltaBitmap <- VB.readBitmap block
-				delta <- VB.readData block
-				let deltaSectorsPresent = fromByteString deltaBitmap
-				let sectorsToCopy = sectorsMissing `intersect` deltaSectorsPresent
-				let sectorsStillMissing = sectorsMissing `subtract` deltaSectorsPresent
-				B.unsafeUseAsCString delta $ \deltaPtr -> mapM_
-					(\offset -> processSector offset (deltaPtr `plusPtr` offset))
-					(map byteOffsetOfSector $ toList sectorsToCopy)
-				return sectorsStillMissing
-
-		byteOffsetOfSector = (*) $ fromIntegral sectorLength
+	byteOffsetOfSector = (*) $ fromIntegral sectorLength
