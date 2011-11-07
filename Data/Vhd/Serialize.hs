@@ -6,12 +6,12 @@ import Control.Monad
 import Data.Bits
 import qualified Data.ByteString      as B
 import qualified Data.ByteString.Lazy as BL
-import Data.Vhd.Types
 import Data.Serialize
 import Data.Serialize.Get
 import Data.Serialize.Put
-import Data.Text.Encoding
 import qualified Data.Text as T
+import Data.Text.Encoding
+import Data.Vhd.Types
 
 instance Serialize Header where
 	get = Header
