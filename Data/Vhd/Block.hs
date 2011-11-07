@@ -76,8 +76,6 @@ readDataRange block offsetStart offsetEnd = do
 	where
 		length       = offsetEnd - offsetStart
 		Data dataPtr = dataOfBlock block
-		sectorStart  = fromIntegral offsetStart `div` sectorLength
-		sectorEnd    = fromIntegral offsetEnd   `div` sectorLength
 
 writeDataRange :: Block -> ByteString -> Int -> IO ()
 writeDataRange block content offset = do
