@@ -180,22 +180,19 @@ readData vhd = readDataRange vhd 0 (vhdLength vhd)
 
 -- | Reads raw data from within the given byte range of the given VHD.
 readDataRange :: Vhd -> Word64 -> Word64 -> IO BL.ByteString
-readDataRange vhd inclusiveLowerBoundBytes exclusiveUpperBoundBytes
-	| lo < 0    = error "lower bound cannot be less than zero."
-	| lo > hi   = error "lower bound cannot be greater than upper bound."
-	| hi > max  = error "upper bound cannot be greater than VHD length."
-	| otherwise = fmap (trim . BL.fromChunks) (sequence blocks)
-		where
-			(lo, hi)   = (inclusiveLowerBoundBytes, exclusiveUpperBoundBytes)
-			max        = vhdLength vhd
-			blocks     = map (readDataBlock vhd) [blockFirst .. blockLast]
-			blockFirst = fromIntegral $ (lo    ) `div` blockSize
-			blockLast  = fromIntegral $ (hi - 1) `div` blockSize
-			blockSize  = fromIntegral $ vhdBlockSize vhd
-			trim       =  BL.take toTake . BL.drop toDrop
-				where
-					toTake = fromIntegral $ hi - lo
-					toDrop = fromIntegral $ lo `mod` blockSize
+readDataRange vhd offset length =
+	if offset + length > vhdLength vhd
+		then error "upper bound cannot be greater than VHD length."
+		else fmap (trim . BL.fromChunks) (sequence blocks)
+	where
+		blocks     = map (readDataBlock vhd) [blockFirst .. blockLast]
+		blockFirst = fromIntegral $ (offset             ) `div` blockSize
+		blockLast  = fromIntegral $ (offset + length - 1) `div` blockSize
+		blockSize  = fromIntegral $ vhdBlockSize vhd
+		trim       =  BL.take toTake . BL.drop toDrop
+			where
+				toTake = fromIntegral $ length
+				toDrop = fromIntegral $ offset `mod` blockSize
 
 -- | Writes raw data to the given VHD.
 writeDataRange :: Vhd -> Word64 -> B.ByteString -> IO ()
