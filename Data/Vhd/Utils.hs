@@ -3,6 +3,7 @@ module Data.Vhd.Utils
 	, resolveColocatedFilePath
 	, roundUpToModulo
 	, hAlign
+	, unlessM
 	) where
 
 import Control.Monad (unless)
@@ -26,3 +27,8 @@ roundUpToModulo n m
 hAlign :: Handle -> Int -> IO ()
 hAlign h n = hTell h >>= \i -> unless ((i `mod` fromIntegral n) == 0) (realign i)
 	where realign i = B.hPut h $ B.replicate (n - fromIntegral (i `mod` fromIntegral n)) 0
+
+unlessM condition elseBranch = do
+	c <- condition
+	unless c elseBranch
+
