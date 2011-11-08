@@ -90,8 +90,8 @@ unsafeReadDataRange block offset length target =
 	where
 		source = (pointerOfData $ dataOfBlock block) `plusPtr` offset
 
-writeDataRange :: Block -> ByteString -> Int -> IO ()
-writeDataRange block content offset = do
+writeDataRange :: Block -> Int -> ByteString -> IO ()
+writeDataRange block offset content = do
 	-- sectors need to be prepared for differential disk if the bitmap was clear before,
 	-- at the moment assumption is it's 0ed
 	bitmapSetRange bitmap (fromIntegral sectorStart) (fromIntegral sectorEnd)

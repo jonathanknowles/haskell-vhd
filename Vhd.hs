@@ -32,7 +32,7 @@ cmdConvert [fileRaw, fileVhd, size] = do
 						appendEmptyBlock node blockNb
 						sectorOff <- unsafeSectorOffsetOfBlockNumber (nodeBat node) blockNb
 						Block.withBlock (nodeFilePath node) (headerBlockSize $ nodeHeader node) sectorOff $ \block ->
-							Block.writeDataRange block srcblock 0
+							Block.writeDataRange block 0 srcblock
 						putStrLn ("block " ++ show (offset `div` fromIntegral blockSize) ++ " written")
 					-- do something with block
 					loop node handle (offset + fromIntegral (B.length srcblock))
