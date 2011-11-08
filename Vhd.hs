@@ -28,9 +28,9 @@ cmdConvert [fileRaw, fileVhd, size] = do
 				then return ()
 				else do
 					unless (isBlockZero srcblock) $ do
-						let blockNb = offset `div` fromIntegral blockSize
-						appendEmptyBlock node blockNb
-						sectorOff <- unsafeSectorOffsetOfBlockNumber (nodeBat node) blockNb
+						let blockNumber = offset `div` fromIntegral blockSize
+						appendEmptyBlock node blockNumber
+						sectorOff <- unsafeSectorOffsetOfBlockNumber (nodeBat node) blockNumber
 						Block.withBlock (nodeFilePath node) (headerBlockSize $ nodeHeader node) sectorOff $ \block ->
 							Block.writeDataRange block 0 srcblock
 						putStrLn ("block " ++ show (offset `div` fromIntegral blockSize) ++ " written")
