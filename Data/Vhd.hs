@@ -239,15 +239,13 @@ readDataBlockInternal resultPtr vhd blockNumber blockSize = buildResult where
 	copySectorsFromNode sectorsRequested (node, sectorOffset) =
 		withBlock (nodeFilePath node) blockSize sectorOffset $ \block -> do
 			deltaBitmap <- VB.readBitmap block
-			delta <- VB.readData block
 			let sectorsPresent = fromByteString deltaBitmap
 			let sectorsMissing = sectorsRequested `subtract` sectorsPresent
 			let sectorsToCopy = sectorsRequested `intersect` sectorsPresent
-			B.unsafeUseAsCString delta $ \sourcePtr -> mapM_
-				(\offset -> B.memcpy
-					(resultPtr `plusPtr` offset)
-					(sourcePtr `plusPtr` offset)
-					(fromIntegral sectorLength))
+			mapM_
+				(\offset -> unsafeReadDataRange block offset
+					(offset + (fromIntegral sectorLength))
+					(resultPtr `plusPtr` offset))
 				(map byteOffsetOfSector $ toList sectorsToCopy)
 			return sectorsMissing
 
