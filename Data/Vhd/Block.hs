@@ -7,6 +7,8 @@ module Data.Vhd.Block
 	, readBitmap
 	, readData
 	, readDataRange
+	, unsafeReadData
+	, unsafeReadDataRange
 	, writeDataRange
 	, sectorLength
 	) where
@@ -50,6 +52,9 @@ blockSizeOfBlock (Block bs _) = bs
 dataOfBlock :: Block -> Data
 dataOfBlock (Block bs ptr) = Data $ ptr `plusPtr` (bitmapSizeOfBlockSize bs)
 
+pointerOfData :: Data -> Ptr Word8
+pointerOfData (Data ptr) = ptr
+
 -- | mmap a block using a filepath, a blocksize
 withBlock :: FilePath -> BlockSize -> Word32 -> (Block -> IO a) -> IO a
 withBlock file blockSize sectorOffset f =
@@ -71,11 +76,19 @@ readData :: Block -> IO ByteString
 readData block = readDataRange block 0 (fromIntegral $ blockSizeOfBlock block)
 
 readDataRange :: Block -> Int -> Int -> IO ByteString
-readDataRange block offsetStart offsetEnd = do
-	B.create length (\bsptr -> B.memcpy (castPtr bsptr) (dataPtr `plusPtr` offsetStart) (fromIntegral length))
+readDataRange block offsetStart offsetEnd =
+	B.create length (unsafeReadDataRange block offsetStart offsetEnd)
 	where
-		length       = offsetEnd - offsetStart
-		Data dataPtr = dataOfBlock block
+		length = fromIntegral $ offsetEnd - offsetStart
+
+unsafeReadData :: Block -> Ptr Word8 -> IO ()
+unsafeReadData block = unsafeReadDataRange block 0 (fromIntegral $ blockSizeOfBlock block)
+
+unsafeReadDataRange :: Block -> Int -> Int -> Ptr Word8 -> IO ()
+unsafeReadDataRange block offsetStart offsetEnd target = B.memcpy target source length
+	where
+		source = (pointerOfData $ dataOfBlock block) `plusPtr` offsetStart
+		length = fromIntegral $ offsetEnd - offsetStart
 
 writeDataRange :: Block -> ByteString -> Int -> IO ()
 writeDataRange block content offset = do
