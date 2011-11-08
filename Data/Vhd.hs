@@ -244,8 +244,7 @@ unsafeReadDataBlock vhd blockNumber blockSize resultPtr = buildResult where
 			let sectorsToCopy = sectorsRequested `intersect` sectorsPresent
 			mapM_
 				(\offset -> unsafeReadDataRange block offset
-					(offset + (fromIntegral sectorLength))
-					(resultPtr `plusPtr` offset))
+					(fromIntegral sectorLength) (resultPtr `plusPtr` offset))
 				(map byteOffsetOfSector $ toList sectorsToCopy)
 			return sectorsMissing
 

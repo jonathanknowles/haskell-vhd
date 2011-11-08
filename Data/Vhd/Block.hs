@@ -73,22 +73,22 @@ readBitmap block =
 			target = castPtr byteStringPtr
 
 readData :: Block -> IO ByteString
-readData block = readDataRange block 0 (fromIntegral $ blockSizeOfBlock block)
+readData block =
+	readDataRange block 0 (fromIntegral $ blockSizeOfBlock block)
 
 readDataRange :: Block -> Int -> Int -> IO ByteString
-readDataRange block offsetStart offsetEnd =
-	B.create length (unsafeReadDataRange block offsetStart offsetEnd)
-	where
-		length = fromIntegral $ offsetEnd - offsetStart
+readDataRange block offset length =
+	B.create length (unsafeReadDataRange block offset length)
 
 unsafeReadData :: Block -> Ptr Word8 -> IO ()
-unsafeReadData block = unsafeReadDataRange block 0 (fromIntegral $ blockSizeOfBlock block)
+unsafeReadData block =
+	unsafeReadDataRange block 0 (fromIntegral $ blockSizeOfBlock block)
 
 unsafeReadDataRange :: Block -> Int -> Int -> Ptr Word8 -> IO ()
-unsafeReadDataRange block offsetStart offsetEnd target = B.memcpy target source length
+unsafeReadDataRange block offset length target =
+	B.memcpy target source (fromIntegral length)
 	where
-		source = (pointerOfData $ dataOfBlock block) `plusPtr` offsetStart
-		length = fromIntegral $ offsetEnd - offsetStart
+		source = (pointerOfData $ dataOfBlock block) `plusPtr` offset
 
 writeDataRange :: Block -> ByteString -> Int -> IO ()
 writeDataRange block content offset = do
