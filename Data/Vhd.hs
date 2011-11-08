@@ -206,12 +206,12 @@ readDataBlock :: Vhd -> Int -> IO B.ByteString
 readDataBlock vhd blockNumber =
 	B.create
 		(fromIntegral $ blockSize)
-		(\resultPtr -> readDataBlockInternal resultPtr vhd blockNumber blockSize)
+		(readDataBlockInternal vhd blockNumber blockSize)
 	where
 		blockSize = vhdBlockSize vhd
 
-readDataBlockInternal :: Ptr Word8 -> Vhd -> Int -> Word32 -> IO ()
-readDataBlockInternal resultPtr vhd blockNumber blockSize = buildResult where
+readDataBlockInternal :: Vhd -> Int -> Word32 -> Ptr Word8 -> IO ()
+readDataBlockInternal vhd blockNumber blockSize resultPtr = buildResult where
 
 	-- To do: modify this function so that it can read a sub-block.
 	-- To do: reduce the use of intermediate data structures.
