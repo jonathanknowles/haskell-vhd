@@ -59,11 +59,15 @@ type DiskGeometrySectorsPerTrack = Word8
 type Checksum                    = Word32
 type PhysicalByteAddress         = Word64
 type PhysicalByteCount           = Word64
+type PhysicalSectorAddress       = Word32
+type PhysicalSectorCount         = Word32
 type TimeStamp                   = Word32
 type VirtualBlockAddress         = Word32
 type VirtualBlockCount           = Word32
 type VirtualByteAddress          = Word64
 type VirtualByteCount            = Word64
+type VirtualSectorAddress        = Word32
+type VirtualSectorCount          = Word32
 
 data Version      = Version VersionMajor VersionMinor deriving (Show, Eq)
 type VersionMajor = Word16
