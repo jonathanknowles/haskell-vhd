@@ -22,8 +22,8 @@ import Data.Vhd.Utils
 import System.IO.MMap
 
 data Bat      = Bat BatStart BatEnd (Maybe Batmap)
-type BatStart = Ptr Word32
-type BatEnd   = Ptr Word32
+type BatStart = Ptr PhysicalSectorAddress
+type BatEnd   = Ptr PhysicalSectorAddress
 data Batmap   = Batmap Bitmap Int
 
 sectorLength = 512
@@ -42,17 +42,17 @@ batGetSize header footer = fromIntegral ((maxEntries * 4) `roundUpToModulo` sect
 	where
 		maxEntries = headerMaxTableEntries header
 
-unsafeSectorOffsetOfBlockNumber :: Bat -> Int -> IO Word32
+unsafeSectorOffsetOfBlockNumber :: Bat -> Int -> IO PhysicalSectorAddress
 unsafeSectorOffsetOfBlockNumber (Bat bptr _ _) n = peekBE ptr
 	where ptr = bptr `plusPtr` (n*4)
 
-sectorOffsetOfBlockNumber :: Bat -> Int -> IO (Maybe Word32)
+sectorOffsetOfBlockNumber :: Bat -> Int -> IO (Maybe PhysicalSectorAddress)
 sectorOffsetOfBlockNumber b n =
 	fmap
 		(\x -> if x == emptyEntry then Nothing else Just x)
 		(unsafeSectorOffsetOfBlockNumber b n)
 
-batWrite :: Bat -> Int -> Word32 -> IO ()
+batWrite :: Bat -> Int -> PhysicalSectorAddress -> IO ()
 batWrite (Bat bptr _ bmap) n v = pokeBE ptr v >> maybe (return ()) (batmapSet n) bmap
 	where ptr = bptr `plusPtr` (n*4)
 
@@ -69,7 +69,7 @@ batMmap file header footer batmapHeader f =
 		batSize        = batGetSize header footer
 		batmapSize     = maybe 0 (fromIntegral . (* sectorLength) . batmapHeaderSize) batmapHeader
 
-batIterate :: Bat -> Int -> (Int -> Word32 -> IO ()) -> IO ()
+batIterate :: Bat -> Int -> (Int -> PhysicalSectorAddress -> IO ()) -> IO ()
 batIterate bat nb f = forM_ [0 .. (nb - 1)] (\i -> unsafeSectorOffsetOfBlockNumber bat i >>= \n -> f i n)
 
 -- | update checksum in the batmap if the batmap exists
