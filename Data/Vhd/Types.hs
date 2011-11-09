@@ -15,7 +15,7 @@ data Header = Header
 	, headerDataOffset           :: PhysicalByteAddress
 	, headerTableOffset          :: PhysicalByteAddress
 	, headerVersion              :: Version
-	, headerMaxTableEntries      :: EntryCount
+	, headerMaxTableEntries      :: VirtualBlockCount
 	, headerBlockSize            :: BlockSize
 	, headerChecksum             :: Checksum
 	, headerParentUniqueId       :: UniqueId
@@ -56,9 +56,9 @@ type DiskGeometryCylinders       = Word16
 type DiskGeometryHeads           = Word8
 type DiskGeometrySectorsPerTrack = Word8
 type Checksum                    = Word32
-type EntryCount                  = Word32
 type PhysicalByteAddress         = Word64
 type TimeStamp                   = Word32
+type VirtualBlockCount           = Word32
 type VirtualByteCount            = Word64
 
 data Version      = Version VersionMajor VersionMinor deriving (Show, Eq)
