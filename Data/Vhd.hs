@@ -69,7 +69,7 @@ withVhd = withVhdInner [] where
 
 data CreateParameters = CreateParameters
 	{ blockSize :: BlockSize
-	, size      :: Size
+	, size      :: VirtualByteCount
 	, timeStamp :: Maybe TimeStamp
 	, uuid      :: Maybe UniqueId
 	, useBatmap :: Bool

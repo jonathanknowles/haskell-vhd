@@ -34,8 +34,8 @@ data Footer = Footer
 	, footerCreatorApplication :: CreatorApplication
 	, footerCreatorVersion     :: Version
 	, footerCreatorHostOs      :: CreatorHostOs
-	, footerOriginalSize       :: Size
-	, footerCurrentSize        :: Size
+	, footerOriginalSize       :: VirtualByteCount
+	, footerCurrentSize        :: VirtualByteCount
 	, footerDiskGeometry       :: DiskGeometry
 	, footerDiskType           :: DiskType
 	, footerChecksum           :: Checksum
@@ -58,8 +58,8 @@ type DiskGeometrySectorsPerTrack = Word8
 type Checksum                    = Word32
 type EntryCount                  = Word32
 type PhysicalByteAddress         = Word64
-type Size                        = Word64
 type TimeStamp                   = Word32
+type VirtualByteCount            = Word64
 
 data Version      = Version VersionMajor VersionMinor deriving (Show, Eq)
 type VersionMajor = Word16
