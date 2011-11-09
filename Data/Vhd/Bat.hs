@@ -40,10 +40,7 @@ batmapChecksum (Batmap (Bitmap p) sz) = complement `fmap` foldM addByte 0 [0 .. 
 batGetSize :: Header -> Footer -> Int
 batGetSize header footer = fromIntegral ((maxEntries * 4) `roundUpToModulo` sectorLength)
 	where
-		diskSize       = footerCurrentSize footer
-		blockSize      = headerBlockSize header
-		ents           = diskSize `divRoundUp` fromIntegral blockSize
-		maxEntries     = headerMaxTableEntries header
+		maxEntries = headerMaxTableEntries header
 
 unsafeSectorOffsetOfBlockNumber :: Bat -> Int -> IO Word32
 unsafeSectorOffsetOfBlockNumber (Bat bptr _ _) n = peekBE ptr
