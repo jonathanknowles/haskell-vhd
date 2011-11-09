@@ -40,7 +40,7 @@ import System.IO
 
 data Vhd = Vhd
 	{ vhdBlockCount :: Word32
-	, vhdBlockSize  :: BlockSize
+	, vhdBlockSize  :: BlockByteCount
 	, vhdNodes      :: [VhdNode]
 	}
 
@@ -68,7 +68,7 @@ withVhd = withVhdInner [] where
 			where ParentUnicodeName p = headerParentUnicodeName $ nodeHeader node
 
 data CreateParameters = CreateParameters
-	{ blockSize :: BlockSize
+	{ blockSize :: BlockByteCount
 	, size      :: VirtualByteCount
 	, timeStamp :: Maybe TimeStamp
 	, uuid      :: Maybe UniqueId

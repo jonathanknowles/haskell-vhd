@@ -16,7 +16,7 @@ data Header = Header
 	, headerTableOffset          :: PhysicalByteAddress
 	, headerVersion              :: Version
 	, headerMaxTableEntries      :: VirtualBlockCount
-	, headerBlockSize            :: BlockSize
+	, headerBlockSize            :: BlockByteCount
 	, headerChecksum             :: Checksum
 	, headerParentUniqueId       :: UniqueId
 	, headerParentTimeStamp      :: TimeStamp
@@ -51,7 +51,7 @@ data BatmapHeader = BatmapHeader
 	, batmapHeaderChecksum     :: Checksum
 	} deriving (Show, Eq)
 
-type BlockSize                   = Word32
+type BlockByteCount              = Word32
 type DiskGeometryCylinders       = Word16
 type DiskGeometryHeads           = Word8
 type DiskGeometrySectorsPerTrack = Word8

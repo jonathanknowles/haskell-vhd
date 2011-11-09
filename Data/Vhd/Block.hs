@@ -26,7 +26,7 @@ import Foreign.Ptr
 import Foreign.Storable
 import System.IO.MMap
 
-data Block = Block BlockSize (Ptr Word8)
+data Block = Block BlockByteCount (Ptr Word8)
 data Sector = Sector (Ptr Word8)
 data Data = Data (Ptr Word8)
 
@@ -37,7 +37,7 @@ bitmapSizeOfBlock :: Block -> Int
 bitmapSizeOfBlock (Block blockSize _) = bitmapSizeOfBlockSize blockSize
 
 -- | this is the padded size of the bitmap for a specific blocksize
-bitmapSizeOfBlockSize :: BlockSize -> Int
+bitmapSizeOfBlockSize :: BlockByteCount -> Int
 bitmapSizeOfBlockSize blockSize = fromIntegral ((nbSector `divRoundUp` 8) `roundUpToModulo` sectorLength)
 	where nbSector = blockSize `divRoundUp` sectorLength
 
@@ -46,7 +46,7 @@ bitmapSizeOfBlockSize blockSize = fromIntegral ((nbSector `divRoundUp` 8) `round
 bitmapOfBlock :: Block -> Bitmap
 bitmapOfBlock (Block _ ptr) = Bitmap ptr
 
-blockSizeOfBlock :: Block -> BlockSize
+blockSizeOfBlock :: Block -> BlockByteCount
 blockSizeOfBlock (Block bs _) = bs
 
 dataOfBlock :: Block -> Data
@@ -56,7 +56,7 @@ pointerOfData :: Data -> Ptr Word8
 pointerOfData (Data ptr) = ptr
 
 -- | mmap a block using a filepath, a blocksize
-withBlock :: FilePath -> BlockSize -> Word32 -> (Block -> IO a) -> IO a
+withBlock :: FilePath -> BlockByteCount -> Word32 -> (Block -> IO a) -> IO a
 withBlock file blockSize sectorOffset f =
 		mmapWithFilePtr file ReadWrite (Just (offset, length)) $ \(ptr, sz) ->
 			f (Block blockSize $ castPtr ptr)
