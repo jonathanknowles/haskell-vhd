@@ -179,7 +179,7 @@ readData :: Vhd -> IO BL.ByteString
 readData vhd = readDataRange vhd 0 (vhdLength vhd)
 
 -- | Reads raw data from within the given byte range of the given VHD.
-readDataRange :: Vhd -> Word64 -> Word64 -> IO BL.ByteString
+readDataRange :: Vhd -> VirtualByteAddress -> VirtualByteCount -> IO BL.ByteString
 readDataRange vhd offset length =
 	if offset + length > vhdLength vhd
 		then error "upper bound cannot be greater than VHD length."
@@ -195,7 +195,7 @@ readDataRange vhd offset length =
 				toDrop = fromIntegral $ offset `mod` blockSize
 
 -- | Writes raw data to the given VHD.
-writeDataRange :: Vhd -> Word64 -> B.ByteString -> IO ()
+writeDataRange :: Vhd -> VirtualByteAddress -> B.ByteString -> IO ()
 writeDataRange vhd byteOffset rawData = undefined
 
 -- | Reads raw data from within the given block of the given VHD.
