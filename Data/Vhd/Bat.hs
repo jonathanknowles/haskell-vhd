@@ -63,11 +63,11 @@ batMmap file header footer batmapHeader f =
 		let batendPtr = ptr `plusPtr` batSize in
 		f . Bat (castPtr ptr) batendPtr $ fmap (const batmap) batmapHeader
 	where
-		absoluteOffset   = fromIntegral (headerTableOffset header)
-		offsetSize       = (absoluteOffset, fromIntegral (batSize + maybe 0 (const 512) batmapHeader + batmapSize))
-		batmapOffset     = batSize + fromIntegral sectorLength
-		batSize          = batGetSize header footer
-		batmapSize       = maybe 0 (fromIntegral . (* sectorLength) . batmapHeaderSize) batmapHeader
+		absoluteOffset = fromIntegral (headerTableOffset header)
+		offsetSize     = (absoluteOffset, fromIntegral (batSize + maybe 0 (const 512) batmapHeader + batmapSize))
+		batmapOffset   = batSize + fromIntegral sectorLength
+		batSize        = batGetSize header footer
+		batmapSize     = maybe 0 (fromIntegral . (* sectorLength) . batmapHeaderSize) batmapHeader
 
 batIterate :: Bat -> Int -> (Int -> Word32 -> IO ()) -> IO ()
 batIterate bat nb f = forM_ [0 .. (nb - 1)] (\i -> unsafeSectorOffsetOfBlockNumber bat i >>= \n -> f i n)
