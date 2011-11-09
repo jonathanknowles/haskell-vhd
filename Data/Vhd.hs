@@ -39,7 +39,7 @@ import Prelude hiding (subtract)
 import System.IO
 
 data Vhd = Vhd
-	{ vhdBlockCount :: Word32
+	{ vhdBlockCount :: VirtualBlockCount
 	, vhdBlockSize  :: BlockByteCount
 	, vhdNodes      :: [VhdNode]
 	}
