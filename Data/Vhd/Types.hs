@@ -51,14 +51,18 @@ data BatmapHeader = BatmapHeader
 	, batmapHeaderChecksum     :: Checksum
 	} deriving (Show, Eq)
 
+type BlockByteAddress            = Word32
 type BlockByteCount              = Word32
 type DiskGeometryCylinders       = Word16
 type DiskGeometryHeads           = Word8
 type DiskGeometrySectorsPerTrack = Word8
 type Checksum                    = Word32
 type PhysicalByteAddress         = Word64
+type PhysicalByteCount           = Word64
 type TimeStamp                   = Word32
+type VirtualBlockAddress         = Word32
 type VirtualBlockCount           = Word32
+type VirtualByteAddress          = Word64
 type VirtualByteCount            = Word64
 
 data Version      = Version VersionMajor VersionMinor deriving (Show, Eq)
