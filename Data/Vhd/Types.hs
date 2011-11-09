@@ -12,8 +12,8 @@ import Text.Printf
 
 data Header = Header
 	{ headerCookie               :: Cookie
-	, headerDataOffset           :: Offset
-	, headerTableOffset          :: Offset
+	, headerDataOffset           :: PhysicalByteAddress
+	, headerTableOffset          :: PhysicalByteAddress
 	, headerVersion              :: Version
 	, headerMaxTableEntries      :: EntryCount
 	, headerBlockSize            :: BlockSize
@@ -29,7 +29,7 @@ data Footer = Footer
 	{ footerCookie             :: Cookie
 	, footerIsTemporaryDisk    :: Bool
 	, footerFormatVersion      :: Version
-	, footerDataOffset         :: Offset
+	, footerDataOffset         :: PhysicalByteAddress
 	, footerTimeStamp          :: TimeStamp
 	, footerCreatorApplication :: CreatorApplication
 	, footerCreatorVersion     :: Version
@@ -45,7 +45,7 @@ data Footer = Footer
 
 data BatmapHeader = BatmapHeader
 	{ batmapHeaderCookie       :: Cookie
-	, batmapHeaderOffset       :: Offset
+	, batmapHeaderOffset       :: PhysicalByteAddress
 	, batmapHeaderSize         :: Word32
 	, batmapHeaderVersion      :: Version
 	, batmapHeaderChecksum     :: Checksum
@@ -57,7 +57,7 @@ type DiskGeometryHeads           = Word8
 type DiskGeometrySectorsPerTrack = Word8
 type Checksum                    = Word32
 type EntryCount                  = Word32
-type Offset                      = Word64
+type PhysicalByteAddress         = Word64
 type Size                        = Word64
 type TimeStamp                   = Word32
 
