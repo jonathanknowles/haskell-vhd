@@ -82,7 +82,7 @@ withVhd = withVhdInner [] where
 -- with (block size) > (maxBound :: Int). Therefore, this function fails
 -- fast on attempting to open such a VHD file.
 --
-validateBlockSize :: Word32 -> Word32
+validateBlockSize :: BlockByteCount -> BlockByteCount
 validateBlockSize value =
 	if integerValue > integerLimit
 		then error
@@ -225,7 +225,7 @@ writeDataRange :: Vhd -> VirtualByteAddress -> B.ByteString -> IO ()
 writeDataRange vhd byteOffset rawData = undefined
 
 -- | Reads raw data from within the given block of the given VHD.
-readDataBlock :: Vhd -> Int -> IO B.ByteString
+readDataBlock :: Vhd -> VirtualBlockAddress -> IO B.ByteString
 readDataBlock vhd blockNumber =
 	B.create
 		(fromIntegral $ blockSize)
@@ -233,7 +233,7 @@ readDataBlock vhd blockNumber =
 	where
 		blockSize = vhdBlockSize vhd
 
-unsafeReadDataBlock :: Vhd -> Int -> Word32 -> Ptr Word8 -> IO ()
+unsafeReadDataBlock :: Vhd -> VirtualBlockAddress -> BlockByteCount -> Ptr Word8 -> IO ()
 unsafeReadDataBlock vhd blockNumber blockSize resultPtr = buildResult where
 
 	-- To do: modify this function so that it can read a sub-block.
@@ -246,19 +246,19 @@ unsafeReadDataBlock vhd blockNumber blockSize resultPtr = buildResult where
 
 	sectorsToRead = fromRange 0 $ fromIntegral $ blockSize `div` sectorLength
 
-	nodeOffsets :: IO [(VhdNode, Word32)]
+	nodeOffsets :: IO [(VhdNode, PhysicalSectorAddress)]
 	nodeOffsets = fmap catMaybes $ mapM maybeNodeOffset $ vhdNodes vhd where
 		maybeNodeOffset node = (fmap . fmap) (node, ) $
 			sectorOffsetOfBlockNumber (nodeBat node) blockNumber
 
-	copySectorsFromNodes :: BitSet -> [(VhdNode, Word32)] -> IO ()
+	copySectorsFromNodes :: BitSet -> [(VhdNode, PhysicalSectorAddress)] -> IO ()
 	copySectorsFromNodes sectorsToCopy [] = return ()
 	copySectorsFromNodes sectorsToCopy (nodeOffset : tail) =
 		if Data.BitSet.isEmpty sectorsToCopy then return () else do
 		sectorsMissing <- copySectorsFromNode sectorsToCopy nodeOffset
 		copySectorsFromNodes sectorsMissing tail
 
-	copySectorsFromNode :: BitSet -> (VhdNode, Word32) -> IO BitSet
+	copySectorsFromNode :: BitSet -> (VhdNode, PhysicalSectorAddress) -> IO BitSet
 	copySectorsFromNode sectorsRequested (node, sectorOffset) =
 		withBlock (nodeFilePath node) blockSize sectorOffset $ \block -> do
 			deltaBitmap <- VB.readBitmap block
@@ -267,8 +267,9 @@ unsafeReadDataBlock vhd blockNumber blockSize resultPtr = buildResult where
 			let sectorsToCopy = sectorsRequested `intersect` sectorsPresent
 			mapM_
 				(\offset -> unsafeReadDataRange block offset
-					(fromIntegral sectorLength) (resultPtr `plusPtr` offset))
+					(fromIntegral sectorLength) (resultPtr `plusPtr` (fromIntegral offset)))
 				(map byteOffsetOfSector $ toList sectorsToCopy)
 			return sectorsMissing
 
-	byteOffsetOfSector = (*) $ fromIntegral sectorLength
+	byteOffsetOfSector :: Int -> BlockByteAddress
+	byteOffsetOfSector x = fromIntegral $ x * (fromIntegral sectorLength)

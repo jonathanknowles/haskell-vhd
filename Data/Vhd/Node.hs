@@ -59,7 +59,7 @@ withVhdNode filePath f = do
 			return a
 
 -- | create empty block at the end
-appendEmptyBlock :: VhdNode -> Int -> IO ()
+appendEmptyBlock :: VhdNode -> VirtualBlockAddress -> IO ()
 appendEmptyBlock node n = do
 	hSeek (nodeHandle node) SeekFromEnd 512
 	x <- hTell (nodeHandle node)

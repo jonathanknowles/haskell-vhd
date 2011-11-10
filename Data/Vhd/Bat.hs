@@ -30,7 +30,8 @@ sectorLength = 512
 
 emptyEntry = 0xffffffff
 
-batmapSet n (Batmap bitmap _) = bitmapSet bitmap n
+batmapSet :: VirtualBlockAddress -> Batmap -> IO ()
+batmapSet n (Batmap bitmap _) = bitmapSet bitmap (fromIntegral n)
 
 batmapChecksum :: Batmap -> IO Checksum
 batmapChecksum (Batmap (Bitmap p) sz) = complement `fmap` foldM addByte 0 [0 .. (sz - 1)]
@@ -42,19 +43,19 @@ batGetSize header footer = fromIntegral ((maxEntries * 4) `roundUpToModulo` sect
 	where
 		maxEntries = headerMaxTableEntries header
 
-unsafeSectorOffsetOfBlockNumber :: Bat -> Int -> IO PhysicalSectorAddress
+unsafeSectorOffsetOfBlockNumber :: Bat -> VirtualBlockAddress -> IO PhysicalSectorAddress
 unsafeSectorOffsetOfBlockNumber (Bat bptr _ _) n = peekBE ptr
-	where ptr = bptr `plusPtr` (n*4)
+	where ptr = bptr `plusPtr` ((fromIntegral n) * 4)
 
-sectorOffsetOfBlockNumber :: Bat -> Int -> IO (Maybe PhysicalSectorAddress)
+sectorOffsetOfBlockNumber :: Bat -> VirtualBlockAddress -> IO (Maybe PhysicalSectorAddress)
 sectorOffsetOfBlockNumber b n =
 	fmap
 		(\x -> if x == emptyEntry then Nothing else Just x)
 		(unsafeSectorOffsetOfBlockNumber b n)
 
-batWrite :: Bat -> Int -> PhysicalSectorAddress -> IO ()
+batWrite :: Bat -> VirtualBlockAddress -> PhysicalSectorAddress -> IO ()
 batWrite (Bat bptr _ bmap) n v = pokeBE ptr v >> maybe (return ()) (batmapSet n) bmap
-	where ptr = bptr `plusPtr` (n*4)
+	where ptr = bptr `plusPtr` ((fromIntegral n) * 4)
 
 batMmap :: FilePath -> Header -> Footer -> Maybe BatmapHeader -> (Bat -> IO a) -> IO a
 batMmap file header footer batmapHeader f =
@@ -69,7 +70,7 @@ batMmap file header footer batmapHeader f =
 		batSize        = batGetSize header footer
 		batmapSize     = maybe 0 (fromIntegral . (* sectorLength) . batmapHeaderSize) batmapHeader
 
-batIterate :: Bat -> Int -> (Int -> PhysicalSectorAddress -> IO ()) -> IO ()
+batIterate :: Bat -> VirtualBlockAddress -> (VirtualBlockAddress -> PhysicalSectorAddress -> IO ()) -> IO ()
 batIterate bat nb f = forM_ [0 .. (nb - 1)] (\i -> unsafeSectorOffsetOfBlockNumber bat i >>= \n -> f i n)
 
 -- | update checksum in the batmap if the batmap exists

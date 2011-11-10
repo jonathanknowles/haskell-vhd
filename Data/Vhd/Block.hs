@@ -56,7 +56,7 @@ pointerOfData :: Data -> Ptr Word8
 pointerOfData (Data ptr) = ptr
 
 -- | mmap a block using a filepath, a blocksize
-withBlock :: FilePath -> BlockByteCount -> Word32 -> (Block -> IO a) -> IO a
+withBlock :: FilePath -> BlockByteCount -> PhysicalSectorAddress -> (Block -> IO a) -> IO a
 withBlock file blockSize sectorOffset f =
 		mmapWithFilePtr file ReadWrite (Just (offset, length)) $ \(ptr, sz) ->
 			f (Block blockSize $ castPtr ptr)
@@ -76,19 +76,19 @@ readData :: Block -> IO ByteString
 readData block =
 	readDataRange block 0 (fromIntegral $ blockSizeOfBlock block)
 
-readDataRange :: Block -> Int -> Int -> IO ByteString
+readDataRange :: Block -> BlockByteAddress -> BlockByteCount -> IO ByteString
 readDataRange block offset length =
-	B.create length (unsafeReadDataRange block offset length)
+	B.create (fromIntegral length) (unsafeReadDataRange block offset length)
 
 unsafeReadData :: Block -> Ptr Word8 -> IO ()
 unsafeReadData block =
 	unsafeReadDataRange block 0 (fromIntegral $ blockSizeOfBlock block)
 
-unsafeReadDataRange :: Block -> Int -> Int -> Ptr Word8 -> IO ()
+unsafeReadDataRange :: Block -> BlockByteAddress -> BlockByteCount -> Ptr Word8 -> IO ()
 unsafeReadDataRange block offset length target =
 	B.memcpy target source (fromIntegral length)
 	where
-		source = (pointerOfData $ dataOfBlock block) `plusPtr` offset
+		source = (pointerOfData $ dataOfBlock block) `plusPtr` (fromIntegral offset)
 
 writeDataRange :: Block -> Int -> ByteString -> IO ()
 writeDataRange block offset content = do
