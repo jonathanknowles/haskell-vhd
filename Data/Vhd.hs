@@ -268,8 +268,8 @@ unsafeReadDataBlock vhd blockNumber blockSize resultPtr = buildResult where
 			mapM_
 				(\offset -> unsafeReadDataRange block offset
 					(fromIntegral sectorLength) (resultPtr `plusPtr` (fromIntegral offset)))
-				(map byteOffsetOfSector $ toList sectorsToCopy)
+				(map (byteOffsetOfSector . fromIntegral) $ toList sectorsToCopy)
 			return sectorsMissing
 
-	byteOffsetOfSector :: Int -> BlockByteAddress
-	byteOffsetOfSector x = fromIntegral $ x * (fromIntegral sectorLength)
+	byteOffsetOfSector :: BlockSectorAddress -> BlockByteAddress
+	byteOffsetOfSector = (*) $ fromIntegral sectorLength

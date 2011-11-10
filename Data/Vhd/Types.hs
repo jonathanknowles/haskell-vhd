@@ -53,6 +53,8 @@ data BatmapHeader = BatmapHeader
 
 type BlockByteAddress            = Word32
 type BlockByteCount              = Word32
+type BlockSectorAddress          = Word32
+type BlockSectorCount            = Word32
 type DiskGeometryCylinders       = Word16
 type DiskGeometryHeads           = Word8
 type DiskGeometrySectorsPerTrack = Word8
