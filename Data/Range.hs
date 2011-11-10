@@ -7,6 +7,8 @@ module Data.Range
 	, RangeLength
 	, range
 	, rangeLength
+	, rangeMinimum
+	, rangeMaximum
 	) where
 
 import Control.Exception
