@@ -4,7 +4,6 @@ module Data.Vhd.Node
 	, containsBlock
 	, lookupOrCreateBlock
 	, withVhdNode
-	, appendEmptyBlock
 	) where
 
 import Control.Applicative ((<$>))
