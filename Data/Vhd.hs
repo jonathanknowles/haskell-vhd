@@ -221,8 +221,31 @@ readDataRange vhd offset length =
 				toDrop = fromIntegral $ offset `mod` blockSize
 
 -- | Writes raw data to the given VHD.
-writeDataRange :: Vhd -> VirtualByteAddress -> B.ByteString -> IO ()
-writeDataRange vhd byteOffset rawData = undefined
+writeDataRange :: Vhd -> VirtualByteAddress -> BL.ByteString -> IO ()
+writeDataRange vhd offset content = write (fromIntegral offset) content where
+
+	write offset content
+		| offset > offsetMax = error "cannot write data past end of VHD."
+		| BL.null content    = return ()
+		| otherwise          = do
+			sectorOffset <- lookupOrCreateBlock node (fromIntegral blockNumber)
+			withBlock file (fromIntegral blockSize) sectorOffset $ \block -> do
+				VB.writeDataRange block (fromIntegral blockOffset) chunk
+				write offsetNext contentNext
+				where
+					blockNumber  = (fromIntegral $ offset `div` blockSize) :: VirtualBlockAddress
+					blockOffset  = offset `mod` blockSize
+					chunk        = B.concat $ BL.toChunks $ fst contentSplit
+					chunkLength  = fromIntegral $ blockSize - (offset `mod` blockSize)
+					contentSplit = BL.splitAt chunkLength content
+					contentNext  = snd contentSplit
+					offsetNext   = ((offset `div` blockSize) * blockSize) + blockSize
+
+	bat       = nodeBat node
+	file      = nodeFilePath node
+	node      = head $ vhdNodes vhd
+	offsetMax = vhdLength vhd
+	blockSize = fromIntegral $ vhdBlockSize vhd
 
 -- | Reads raw data from within the given block of the given VHD.
 readDataBlock :: Vhd -> VirtualBlockAddress -> IO B.ByteString
