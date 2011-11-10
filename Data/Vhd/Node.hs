@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Data.Vhd.Node
 	( VhdNode (..)
+	, containsBlock
+	, lookupOrCreateBlock
 	, withVhdNode
 	, appendEmptyBlock
 	) where
@@ -12,14 +14,14 @@ import Data.ByteString.Char8 ()
 import Data.IORef
 import Data.Serialize (decode, encode)
 import Data.Vhd.Block
-import Data.Vhd.Bat
+import qualified Data.Vhd.Bat as Bat
 import Data.Vhd.Types
 import Data.Vhd.Utils
 import Data.Vhd.Serialize
 import System.IO
 
 data VhdNode = VhdNode
-	{ nodeBat      :: Bat
+	{ nodeBat      :: Bat.Bat
 	, nodeHeader   :: Header
 	, nodeFooter   :: Footer
 	, nodeHandle   :: Handle
@@ -35,7 +37,7 @@ withVhdNode filePath f = do
 		mBatmapHdr <- if footerCreatorVersion footer == Version 1 3
 			then do
 				-- skip the BAT, and try reading the batmap header
-				hSeek handle RelativeSeek (fromIntegral $ batGetSize header footer)
+				hSeek handle RelativeSeek (fromIntegral $ Bat.batGetSize header footer)
 				batmapHdr <- decode <$> B.hGet handle 512
 				case batmapHdr of
 					Left _     -> return Nothing
@@ -44,7 +46,7 @@ withVhdNode filePath f = do
 							then return $ Just bHdr
 							else return Nothing
 			else return Nothing
-		batMmap filePath header footer mBatmapHdr $ \bat -> do
+		Bat.batMmap filePath header footer mBatmapHdr $ \bat -> do
 			bmodified <- newIORef False
 			a <- f $ VhdNode
 				{ nodeBat      = bat
@@ -55,8 +57,16 @@ withVhdNode filePath f = do
 				, nodeModified = bmodified
 				}
 			modified <- readIORef bmodified
-			when (modified) $ batUpdateChecksum bat
+			when (modified) $ Bat.batUpdateChecksum bat
 			return a
+
+lookupOrCreateBlock :: VhdNode -> VirtualBlockAddress -> IO PhysicalSectorAddress
+lookupOrCreateBlock node blockNumber = do
+	unlessM (Bat.containsBlock (nodeBat node) blockNumber) $ appendEmptyBlock node blockNumber
+	Bat.unsafeLookupBlock (nodeBat node) blockNumber
+
+containsBlock :: VhdNode -> VirtualBlockAddress -> IO Bool
+containsBlock node = Bat.containsBlock (nodeBat node)
 
 -- | create empty block at the end
 appendEmptyBlock :: VhdNode -> VirtualBlockAddress -> IO ()
@@ -66,7 +76,7 @@ appendEmptyBlock node n = do
 	-- paranoid check
 	let (sector, m) = x `divMod` 512
 	unless (m == 0) $ error "wrong sector alignment"
-	batWrite (nodeBat node) n (fromIntegral sector)
+	Bat.batWrite (nodeBat node) n (fromIntegral sector)
 	modifyIORef (nodeModified node) (const True)
 	B.hPut (nodeHandle node) (B.replicate fullSize 0)
 	hAlign (nodeHandle node) (fromIntegral sectorLength)
