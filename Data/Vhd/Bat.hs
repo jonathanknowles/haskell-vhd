@@ -1,6 +1,7 @@
 module Data.Vhd.Bat
 	( Bat (..)
 	, batGetSize
+	, containsBlock
 	, lookupBlock
 	, unsafeLookupBlock
 	, batWrite
@@ -43,15 +44,18 @@ batGetSize header footer = fromIntegral ((maxEntries * 4) `roundUpToModulo` sect
 	where
 		maxEntries = headerMaxTableEntries header
 
-unsafeLookupBlock :: Bat -> VirtualBlockAddress -> IO PhysicalSectorAddress
-unsafeLookupBlock (Bat bptr _ _) n = peekBE ptr
-	where ptr = bptr `plusPtr` ((fromIntegral n) * 4)
+containsBlock :: Bat -> VirtualBlockAddress -> IO Bool
+containsBlock = (fmap (/= emptyEntry) .) . unsafeLookupBlock
 
 lookupBlock :: Bat -> VirtualBlockAddress -> IO (Maybe PhysicalSectorAddress)
 lookupBlock b n =
 	fmap
 		(\x -> if x == emptyEntry then Nothing else Just x)
 		(unsafeLookupBlock b n)
+
+unsafeLookupBlock :: Bat -> VirtualBlockAddress -> IO PhysicalSectorAddress
+unsafeLookupBlock (Bat bptr _ _) n = peekBE ptr
+	where ptr = bptr `plusPtr` ((fromIntegral n) * 4)
 
 batWrite :: Bat -> VirtualBlockAddress -> PhysicalSectorAddress -> IO ()
 batWrite (Bat bptr _ bmap) n v = pokeBE ptr v >> maybe (return ()) (batmapSet n) bmap
