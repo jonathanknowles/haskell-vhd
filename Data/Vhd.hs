@@ -25,7 +25,7 @@ import Data.Serialize
 import Data.Time.Clock.POSIX
 import Data.Vhd.Bat
 import Data.Vhd.Block hiding (readData, readDataRange, writeDataRange)
-import qualified Data.Vhd.Block as VB
+import qualified Data.Vhd.Block as Block
 import Data.Vhd.Checksum
 import Data.Vhd.Geometry
 import Data.Vhd.Node
@@ -230,7 +230,7 @@ writeDataRange vhd offset content = write (fromIntegral offset) content where
 		| otherwise          = do
 			sectorOffset <- lookupOrCreateBlock node (fromIntegral blockNumber)
 			withBlock file (fromIntegral blockSize) sectorOffset $ \block -> do
-				VB.writeDataRange block (fromIntegral blockOffset) chunk
+				Block.writeDataRange block (fromIntegral blockOffset) chunk
 				write offsetNext contentNext
 				where
 					blockNumber  = (fromIntegral $ offset `div` blockSize) :: VirtualBlockAddress
@@ -286,7 +286,7 @@ unsafeReadDataBlock vhd blockNumber resultPtr = buildResult where
 	copySectorsFromNode :: BitSet -> (VhdNode, PhysicalSectorAddress) -> IO BitSet
 	copySectorsFromNode sectorsRequested (node, sectorOffset) =
 		withBlock (nodeFilePath node) blockSize sectorOffset $ \block -> do
-			deltaBitmap <- VB.readBitmap block
+			deltaBitmap <- Block.readBitmap block
 			let sectorsPresent = fromByteString deltaBitmap
 			let sectorsMissing = sectorsRequested `subtract` sectorsPresent
 			let sectorsToCopy = sectorsRequested `intersect` sectorsPresent
