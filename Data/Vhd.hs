@@ -215,7 +215,7 @@ readDataRange vhd offset length =
 		blockFirst = fromIntegral $ (offset             ) `div` blockSize
 		blockLast  = fromIntegral $ (offset + length - 1) `div` blockSize
 		blockSize  = fromIntegral $ vhdBlockSize vhd
-		trim       =  BL.take toTake . BL.drop toDrop
+		trim       = BL.take toTake . BL.drop toDrop
 			where
 				toTake = fromIntegral $ length
 				toDrop = fromIntegral $ offset `mod` blockSize

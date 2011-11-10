@@ -68,12 +68,9 @@ appendEmptyBlock node n = do
 	unless (m == 0) $ error "wrong sector alignment"
 	batWrite (nodeBat node) n (fromIntegral sector)
 	modifyIORef (nodeModified node) (const True)
-
 	B.hPut (nodeHandle node) (B.replicate fullSize 0)
-
 	hAlign (nodeHandle node) (fromIntegral sectorLength)
 	B.hPut (nodeHandle node) $ encode (nodeFooter node)
-
 	where
 		fullSize   = bitmapSize + fromIntegral blockSize
 		bitmapSize = bitmapSizeOfBlockSize blockSize
