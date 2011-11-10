@@ -6,13 +6,14 @@ module Data.Range
 	( Range
 	, RangeLength
 	, range
-	, rangeLength
-	, rangeMinimum
-	, rangeMaximum
+	, length
+	, minimum
+	, maximum
 	) where
 
 import Control.Exception
 import Data.Word
+import Prelude hiding (length, minimum, maximum)
 
 data Range a = Range a a
 
@@ -21,11 +22,11 @@ class (Integral a, Integral b) => RangeLength a b | a -> b
 range :: RangeLength a b => a -> a -> Range a
 range a b = assert (a <= b) $ Range a b
 
-rangeLength :: RangeLength a b => Range a -> b
-rangeLength (Range a b) = fromIntegral $ b - a
+length :: RangeLength a b => Range a -> b
+length (Range a b) = fromIntegral $ b - a
 
-rangeMinimum :: Range a -> a
-rangeMinimum (Range a _) = a
+minimum :: Range a -> a
+minimum (Range a _) = a
 
-rangeMaximum :: Range a -> a
-rangeMaximum (Range _ a) = a
+maximum :: Range a -> a
+maximum (Range _ a) = a
