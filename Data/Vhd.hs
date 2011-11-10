@@ -208,7 +208,7 @@ readData vhd = readDataRange vhd 0 (vhdLength vhd)
 readDataRange :: Vhd -> VirtualByteAddress -> VirtualByteCount -> IO BL.ByteString
 readDataRange vhd offset length =
 	if offset + length > vhdLength vhd
-		then error "upper bound cannot be greater than VHD length."
+		then error "cannot read data past end of VHD."
 		else fmap (trim . BL.fromChunks) (sequence blocks)
 	where
 		blocks     = map (readDataBlock vhd) [blockFirst .. blockLast]
