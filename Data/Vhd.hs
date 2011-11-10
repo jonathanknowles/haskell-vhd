@@ -252,12 +252,12 @@ readDataBlock :: Vhd -> VirtualBlockAddress -> IO B.ByteString
 readDataBlock vhd blockNumber =
 	B.create
 		(fromIntegral $ blockSize)
-		(unsafeReadDataBlock vhd blockNumber blockSize)
+		(unsafeReadDataBlock vhd blockNumber)
 	where
 		blockSize = vhdBlockSize vhd
 
-unsafeReadDataBlock :: Vhd -> VirtualBlockAddress -> BlockByteCount -> Ptr Word8 -> IO ()
-unsafeReadDataBlock vhd blockNumber blockSize resultPtr = buildResult where
+unsafeReadDataBlock :: Vhd -> VirtualBlockAddress -> Ptr Word8 -> IO ()
+unsafeReadDataBlock vhd blockNumber resultPtr = buildResult where
 
 	-- To do: modify this function so that it can read a sub-block.
 	-- To do: reduce the use of intermediate data structures.
@@ -266,6 +266,8 @@ unsafeReadDataBlock vhd blockNumber blockSize resultPtr = buildResult where
 	buildResult = do
 		B.memset resultPtr 0 (fromIntegral blockSize)
 		copySectorsFromNodes sectorsToRead =<< nodeOffsets
+
+	blockSize = vhdBlockSize vhd
 
 	sectorsToRead = fromRange 0 $ fromIntegral $ blockSize `div` sectorLength
 
