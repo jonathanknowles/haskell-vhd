@@ -61,11 +61,37 @@ withVhd = withVhdInner [] where
 				else f $ Vhd
 					-- TODO: require consistent block count and size across all nodes.
 					{ vhdBlockCount = blockCount node
-					, vhdBlockSize  = blockSize  node
+					, vhdBlockSize  = validateBlockSize $ blockSize  node
 					, vhdNodes      = reverse $ node : accumulatedNodes
 					}
 		where parentPath node = resolveColocatedFilePath filePath p
 			where ParentUnicodeName p = headerParentUnicodeName $ nodeHeader node
+
+-- The VHD specification requires an unsigned 32-bit word to encode the
+-- block size of a VHD.
+--
+-- However, this library provides:
+--     a. operations to copy data from a block into a strict ByteString.
+--     b. operations to copy data from a strict ByteString into a block.
+--
+-- Furthermore:
+--     c. for all bytestrings b:   (length of b) ≤ (maxBound :: Int).
+--     d. for some systems: (maxBound :: Word32) > (maxBound :: Int).
+--
+-- This opens the possibility of subtle bugs on attempting to open a VHD
+-- with (block size) > (maxBound :: Int). Therefore, this function fails
+-- fast on attempting to open such a VHD file.
+--
+validateBlockSize :: Word32 -> Word32
+validateBlockSize value =
+	if integerValue > integerLimit
+		then error
+			( "Cannot open VHD file with block size " ++
+			  "greater than upper bound of platform integer." )
+		else value
+	where
+		integerValue = fromIntegral (value          ) :: Integer
+		integerLimit = fromIntegral (maxBound :: Int) :: Integer
 
 data CreateParameters = CreateParameters
 	{ blockSize :: BlockByteCount
