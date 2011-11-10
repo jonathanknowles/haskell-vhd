@@ -249,7 +249,7 @@ unsafeReadDataBlock vhd blockNumber blockSize resultPtr = buildResult where
 	nodeOffsets :: IO [(VhdNode, PhysicalSectorAddress)]
 	nodeOffsets = fmap catMaybes $ mapM maybeNodeOffset $ vhdNodes vhd where
 		maybeNodeOffset node = (fmap . fmap) (node, ) $
-			sectorOffsetOfBlockNumber (nodeBat node) blockNumber
+			lookupBlock (nodeBat node) blockNumber
 
 	copySectorsFromNodes :: BitSet -> [(VhdNode, PhysicalSectorAddress)] -> IO ()
 	copySectorsFromNodes sectorsToCopy [] = return ()

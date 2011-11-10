@@ -1,8 +1,8 @@
 module Data.Vhd.Bat
 	( Bat (..)
 	, batGetSize
-	, sectorOffsetOfBlockNumber
-	, unsafeSectorOffsetOfBlockNumber
+	, lookupBlock
+	, unsafeLookupBlock
 	, batWrite
 	, batMmap
 	, batIterate
@@ -43,15 +43,15 @@ batGetSize header footer = fromIntegral ((maxEntries * 4) `roundUpToModulo` sect
 	where
 		maxEntries = headerMaxTableEntries header
 
-unsafeSectorOffsetOfBlockNumber :: Bat -> VirtualBlockAddress -> IO PhysicalSectorAddress
-unsafeSectorOffsetOfBlockNumber (Bat bptr _ _) n = peekBE ptr
+unsafeLookupBlock :: Bat -> VirtualBlockAddress -> IO PhysicalSectorAddress
+unsafeLookupBlock (Bat bptr _ _) n = peekBE ptr
 	where ptr = bptr `plusPtr` ((fromIntegral n) * 4)
 
-sectorOffsetOfBlockNumber :: Bat -> VirtualBlockAddress -> IO (Maybe PhysicalSectorAddress)
-sectorOffsetOfBlockNumber b n =
+lookupBlock :: Bat -> VirtualBlockAddress -> IO (Maybe PhysicalSectorAddress)
+lookupBlock b n =
 	fmap
 		(\x -> if x == emptyEntry then Nothing else Just x)
-		(unsafeSectorOffsetOfBlockNumber b n)
+		(unsafeLookupBlock b n)
 
 batWrite :: Bat -> VirtualBlockAddress -> PhysicalSectorAddress -> IO ()
 batWrite (Bat bptr _ bmap) n v = pokeBE ptr v >> maybe (return ()) (batmapSet n) bmap
@@ -71,7 +71,7 @@ batMmap file header footer batmapHeader f =
 		batmapSize     = maybe 0 (fromIntegral . (* sectorLength) . batmapHeaderSize) batmapHeader
 
 batIterate :: Bat -> VirtualBlockAddress -> (VirtualBlockAddress -> PhysicalSectorAddress -> IO ()) -> IO ()
-batIterate bat nb f = forM_ [0 .. (nb - 1)] (\i -> unsafeSectorOffsetOfBlockNumber bat i >>= \n -> f i n)
+batIterate bat nb f = forM_ [0 .. (nb - 1)] (\i -> unsafeLookupBlock bat i >>= \n -> f i n)
 
 -- | update checksum in the batmap if the batmap exists
 batUpdateChecksum :: Bat -> IO ()
