@@ -14,30 +14,12 @@ import System.IO
 import Text.Printf
 
 cmdConvert [fileRaw, fileVhd, size] = do
+	let vhdSize = read size * 1024 * 1024
 	create fileVhd $ defaultCreateParameters
-		{ size = read size * 1024 * 1024
+		{ size = vhdSize
 		, useBatmap = False
 		}
-	withVhdNode fileVhd $ \node -> do
-		withFile fileRaw ReadMode $ \handle -> do
-			loop node handle 0
-	where
-		loop node handle offset = do
-			srcblock <- B.hGet handle (fromIntegral blockSize)
-			if B.null srcblock
-				then return ()
-				else do
-					unless (isBlockZero srcblock) $ do
-						let blockNumber = offset `div` fromIntegral blockSize
-						appendEmptyBlock node blockNumber
-						sectorOff <- unsafeLookupBlock (nodeBat node) (fromIntegral blockNumber)
-						Block.withBlock (nodeFilePath node) (headerBlockSize $ nodeHeader node) sectorOff $ \block ->
-							Block.writeDataRange block 0 srcblock
-						putStrLn ("block " ++ show (offset `div` fromIntegral blockSize) ++ " written")
-					-- do something with block
-					loop node handle (offset + fromIntegral (B.length srcblock))
-		isBlockZero = B.all ((==) 0)
-		blockSize = 2 * 1024 * 1024
+	withVhd fileVhd $ \vhd -> BL.readFile fileRaw >>= writeDataRange vhd 0
 cmdConvert _ = error "usage: convert <raw file> <vhd file> <size MiB>"
 
 cmdCreate [name, size] = create name $ defaultCreateParameters { size = (read size) * 1024 * 1024, useBatmap = True }
