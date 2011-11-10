@@ -13,13 +13,21 @@ import System.Environment (getArgs)
 import System.IO
 import Text.Printf
 
-cmdConvert [fileRaw, fileVhd, size] = do
-	let vhdSize = read size * 1024 * 1024
-	create fileVhd $ defaultCreateParameters
-		{ size = vhdSize
-		, useBatmap = False
-		}
-	withVhd fileVhd $ \vhd -> BL.readFile fileRaw >>= writeDataRange vhd 0
+cmdConvert [fileRaw, fileVhd, size] = convert =<< rawSizeBytes where
+	vhdSizeMiB   = read size
+	vhdSizeBytes = vhdSizeMiB * 1024 * 1024
+	rawSizeBytes = fmap fromIntegral $ withFile fileRaw ReadMode hFileSize
+	convert rawSizeBytes
+		| vhdSizeMiB `mod` 2 /= 0 = error
+			"specified VHD size is not a multiple of 2 MiB."
+		| vhdSizeBytes < rawSizeBytes = error
+			"specified VHD size is not large enough to contain raw data."
+		| otherwise = do
+			create fileVhd $ defaultCreateParameters
+				{ size = vhdSizeBytes
+				, useBatmap = False
+				}
+			withVhd fileVhd $ \vhd -> BL.readFile fileRaw >>= writeDataRange vhd 0
 cmdConvert _ = error "usage: convert <raw file> <vhd file> <size MiB>"
 
 cmdCreate [name, size] = create name $ defaultCreateParameters { size = (read size) * 1024 * 1024, useBatmap = True }
