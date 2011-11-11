@@ -6,6 +6,7 @@ module Data.Vhd
 	, CreateParameters (..)
 	, defaultCreateParameters
 	, getInfo
+	, snapshot
 	, readData
 	, readDataRange
 	, writeDataRange
@@ -36,6 +37,7 @@ import Foreign.C.String
 import Foreign.C.Types
 import Foreign.Ptr
 import Prelude hiding (subtract)
+import System.FilePath.Posix
 import System.IO
 
 data Vhd = Vhd
@@ -209,22 +211,23 @@ create' filePath createParams =
 			}
 
 snapshot :: Vhd -> FilePath -> IO ()
-snapshot parentVhd childFilePath = create childFilePath $ CreateParameters
-	{ createBlockSize         = vhdBlockSize parentVhd
-	, createDiskType          = DiskTypeDifferencing
-	, createParentTimeStamp   = Just $ footerTimeStamp   headNodeFooter
-	, createParentUniqueId    = Just $ footerUniqueId    headNodeFooter
-	, createParentUnicodeName = Just $ parentUnicodeName headNodeFilePath
-	, createTimeStamp         = Nothing
-	, createUuid              = Nothing
-	, createUseBatmap         = hasBitmap headNodeBat
-	, createVirtualSize       = vhdLength parentVhd
-	}
-	where
-		headNode         = head $ vhdNodes parentVhd
-		headNodeBat      = nodeBat      headNode
-		headNodeFooter   = nodeFooter   headNode
-		headNodeFilePath = nodeFilePath headNode
+snapshot parentVhd childFilePath = do
+	create childFilePath $ CreateParameters
+		{ createBlockSize         = vhdBlockSize parentVhd
+		, createDiskType          = DiskTypeDifferencing
+		, createParentTimeStamp   = Just $ footerTimeStamp   headNodeFooter
+		, createParentUniqueId    = Just $ footerUniqueId    headNodeFooter
+		, createParentUnicodeName = Just $ parentUnicodeName parentFilePath
+		, createTimeStamp         = Nothing
+		, createUuid              = Nothing
+		, createUseBatmap         = hasBitmap headNodeBat
+		, createVirtualSize       = vhdLength parentVhd
+		}
+		where
+			headNode         = head $ vhdNodes parentVhd
+			headNodeBat      = nodeBat      headNode
+			headNodeFooter   = nodeFooter   headNode
+			parentFilePath   = makeRelative (takeDirectory childFilePath) (nodeFilePath headNode)
 
 -- | Reads all raw data from the given VHD.
 readData :: Vhd -> IO BL.ByteString
