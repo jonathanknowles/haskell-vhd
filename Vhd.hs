@@ -24,14 +24,18 @@ cmdConvert [fileRaw, fileVhd, size] = convert =<< rawSizeBytes where
 			"specified VHD size is not large enough to contain raw data."
 		| otherwise = do
 			create fileVhd $ defaultCreateParameters
-				{ size = vhdSizeBytes
-				, useBatmap = False
+				{ createUseBatmap   = False
+				, createVirtualSize = vhdSizeBytes
 				}
 			withVhd fileVhd $ \vhd -> BL.readFile fileRaw >>= writeDataRange vhd 0
 cmdConvert _ = error "usage: convert <raw file> <vhd file> <size MiB>"
 
-cmdCreate [name, size] = create name $ defaultCreateParameters { size = (read size) * 1024 * 1024, useBatmap = True }
-cmdCreate _            = error "usage: create <name> <size MiB>"
+cmdCreate [name, size] =
+	create name $ defaultCreateParameters
+		{ createUseBatmap   = True
+		, createVirtualSize = (read size) * 1024 * 1024
+		}
+cmdCreate _ = error "usage: create <name> <size MiB>"
 
 cmdExtract [fileVhd, fileRaw] = withVhd fileVhd $ readData >=> BL.writeFile fileRaw
 cmdExtract _                  = error "usage: extract <vhd file> <raw file>"

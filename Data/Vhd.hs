@@ -94,19 +94,27 @@ validateBlockSize value =
 		integerLimit = fromIntegral (maxBound :: Int) :: Integer
 
 data CreateParameters = CreateParameters
-	{ blockSize :: BlockByteCount
-	, size      :: VirtualByteCount
-	, timeStamp :: Maybe TimeStamp
-	, uuid      :: Maybe UniqueId
-	, useBatmap :: Bool
+	{ createBlockSize         :: BlockByteCount
+	, createDiskType          :: DiskType
+	, createParentTimeStamp   :: Maybe TimeStamp
+	, createParentUnicodeName :: Maybe ParentUnicodeName
+	, createParentUniqueId    :: Maybe UniqueId
+	, createTimeStamp         :: Maybe TimeStamp
+	, createUuid              :: Maybe UniqueId
+	, createUseBatmap         :: Bool
+	, createVirtualSize       :: VirtualByteCount
 	} deriving (Show, Eq)
 
 defaultCreateParameters = CreateParameters
-	{ blockSize = 2 * 1024 * 1024
-	, size      = 0
-	, timeStamp = Nothing
-	, uuid      = Nothing
-	, useBatmap = False
+	{ createBlockSize         = 2 * 1024 * 1024
+	, createDiskType          = DiskTypeDynamic
+	, createParentTimeStamp   = Nothing
+	, createParentUnicodeName = Nothing
+	, createParentUniqueId    = Nothing
+	, createTimeStamp         = Nothing
+	, createUuid              = Nothing
+	, createUseBatmap         = False
+	, createVirtualSize       = 0
 	}
 
 -- | grab the header and footer from a vhd file.
@@ -122,14 +130,14 @@ getInfo filePath = withFile filePath ReadMode $ \handle -> do
 -- | create an empty vhd with the specified parameters
 create :: FilePath -> CreateParameters -> IO ()
 create filePath createParams
-	| size createParams == 0 = error "cannot create a 0-sized VHD"
-	| otherwise              = do
+	| createVirtualSize createParams == 0 = error "cannot create a 0-sized VHD"
+	| otherwise                           = do
 		nowUnixEpoch <- fromIntegral . fromEnum <$> getPOSIXTime
 		let nowVhdEpoch = fromIntegral (nowUnixEpoch - y2k)
 		uniqueid <- randomUniqueId
 		create' filePath $ createParams
-			{ uuid      = Just $ maybe uniqueid id $ uuid createParams
-			, timeStamp = Just $ maybe nowVhdEpoch id $ timeStamp createParams
+			{ createTimeStamp = Just $ maybe nowVhdEpoch id $ createTimeStamp createParams
+			, createUuid      = Just $ maybe uniqueid    id $ createUuid      createParams
 			}
 	where
 		y2k :: Word64
@@ -145,7 +153,7 @@ create' filePath createParams =
 		B.hPut handle $ B.replicate (fromIntegral batSize) 0xff
 
 		-- maybe create a batmap
-		when (useBatmap createParams) $ do
+		when (createUseBatmap createParams) $ do
 			hAlign handle (fromIntegral sectorLength)
 			headerPos <- hTell handle
 			B.hPut handle $ encode $ BatmapHeader
@@ -161,8 +169,8 @@ create' filePath createParams =
 		hAlign handle (fromIntegral sectorLength)
 		B.hPut handle $ encode footer
 	where
-		virtualSize     = size createParams
-		maxTableEntries = fromIntegral (virtualSize `divRoundUp` fromIntegral (blockSize createParams))
+		virtualSize     = createVirtualSize createParams
+		maxTableEntries = fromIntegral (virtualSize `divRoundUp` fromIntegral (createBlockSize createParams))
 		batSize         = (maxTableEntries * 4) `roundUpToModulo` sectorLength
 		batPadSize      = batSize - maxTableEntries * 4
 		footerSize      = 512
@@ -173,16 +181,16 @@ create' filePath createParams =
 			, footerIsTemporaryDisk    = False
 			, footerFormatVersion      = Version 1 0
 			, footerDataOffset         = footerSize
-			, footerTimeStamp          = fromJust $ timeStamp createParams
+			, footerTimeStamp          = fromJust $ createTimeStamp createParams
 			, footerCreatorApplication = creatorApplication "tap\0"
-			, footerCreatorVersion     = if useBatmap createParams then Version 1 3 else Version 1 0
+			, footerCreatorVersion     = if createUseBatmap createParams then Version 1 3 else Version 1 0
 			, footerCreatorHostOs      = CreatorHostOsWindows
 			, footerOriginalSize       = virtualSize
 			, footerCurrentSize        = virtualSize
 			, footerDiskGeometry       = diskGeometry (virtualSize `div` fromIntegral sectorLength)
-			, footerDiskType           = DiskTypeDynamic
+			, footerDiskType           = createDiskType createParams
 			, footerChecksum           = 0
-			, footerUniqueId           = fromJust $ uuid createParams
+			, footerUniqueId           = fromJust $ createUuid createParams
 			, footerIsSavedState       = False
 			}
 		header = adjustHeaderChecksum $ Header
@@ -191,14 +199,32 @@ create' filePath createParams =
 			, headerTableOffset          = footerSize + headerSize
 			, headerVersion              = Version 1 0
 			, headerMaxTableEntries      = maxTableEntries
-			, headerBlockSize            = blockSize createParams
+			, headerBlockSize            = createBlockSize createParams
 			, headerChecksum             = 0
-			, headerParentUniqueId       = uniqueId $ B.replicate 16 0
-			, headerParentTimeStamp      = 0
+			, headerParentUniqueId       = fromMaybe (uniqueId $ B.replicate 16 0) (createParentUniqueId createParams)
+			, headerParentTimeStamp      = fromMaybe 0 (createParentTimeStamp createParams)
 			, headerReserved1            = B.replicate 4 0
-			, headerParentUnicodeName    = parentUnicodeName ""
+			, headerParentUnicodeName    = fromMaybe (parentUnicodeName "") (createParentUnicodeName createParams)
 			, headerParentLocatorEntries = parentLocatorEntries $ replicate 8 (ParentLocatorEntry $ B.replicate 24 0)
 			}
+
+snapshot :: Vhd -> FilePath -> IO ()
+snapshot parentVhd childFilePath = create childFilePath $ CreateParameters
+	{ createBlockSize         = vhdBlockSize parentVhd
+	, createDiskType          = DiskTypeDifferencing
+	, createParentTimeStamp   = Just $ footerTimeStamp   headNodeFooter
+	, createParentUniqueId    = Just $ footerUniqueId    headNodeFooter
+	, createParentUnicodeName = Just $ parentUnicodeName headNodeFilePath
+	, createTimeStamp         = Nothing
+	, createUuid              = Nothing
+	, createUseBatmap         = hasBitmap headNodeBat
+	, createVirtualSize       = vhdLength parentVhd
+	}
+	where
+		headNode         = head $ vhdNodes parentVhd
+		headNodeBat      = nodeBat      headNode
+		headNodeFooter   = nodeFooter   headNode
+		headNodeFilePath = nodeFilePath headNode
 
 -- | Reads all raw data from the given VHD.
 readData :: Vhd -> IO BL.ByteString

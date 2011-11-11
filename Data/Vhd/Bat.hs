@@ -4,6 +4,7 @@ module Data.Vhd.Bat
 	, containsBlock
 	, lookupBlock
 	, unsafeLookupBlock
+	, hasBitmap
 	, batWrite
 	, batMmap
 	, batIterate
@@ -30,6 +31,9 @@ data Batmap   = Batmap Bitmap Int
 sectorLength = 512
 
 emptyEntry = 0xffffffff
+
+hasBitmap (Bat _ _ (Nothing)) = False
+hasBitmap (Bat _ _ (Just bm)) = True
 
 batmapSet :: VirtualBlockAddress -> Batmap -> IO ()
 batmapSet n (Batmap bitmap _) = bitmapSet bitmap (fromIntegral n)
