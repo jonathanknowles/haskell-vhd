@@ -79,6 +79,10 @@ cmdRead [file] = withVhdNode file $ \node -> do
 	putStrLn ("blocks allocated  : " ++ show nb ++ "/" ++ show (headerMaxTableEntries hdr))
 cmdRead _ = error "usage: read <file>"
 
+cmdSnapshot [fileVhdParent, fileVhdChild] =
+	withVhd fileVhdParent $ \vhdParent -> snapshot vhdParent fileVhdChild
+cmdSnapshot _ = error "usage: snapshot <parent vhd file> <child vhd file>"
+
 showBlockSize i
 	| i < 1024     = printf "%d bytes" i
 	| i < (1024^2) = printf "%d KiB" (i `div` 1024)
@@ -91,8 +95,9 @@ showChecksum checksum isValid =
 main = do
 	args <- getArgs
 	case args of
-		"convert" :xs -> cmdConvert xs
-		"create"  :xs -> cmdCreate  xs
-		"extract" :xs -> cmdExtract xs
-		"prop-get":xs -> cmdPropGet xs
-		"read"    :xs -> cmdRead    xs
+		"convert"  : xs -> cmdConvert  xs
+		"create"   : xs -> cmdCreate   xs
+		"extract"  : xs -> cmdExtract  xs
+		"prop-get" : xs -> cmdPropGet  xs
+		"read"     : xs -> cmdRead     xs
+		"snapshot" : xs -> cmdSnapshot xs
