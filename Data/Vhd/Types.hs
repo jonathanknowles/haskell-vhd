@@ -1,22 +1,22 @@
-module Data.VHD.Types where
+module Data.Vhd.Types where
 
 import Control.Exception
 import Control.Monad
 import qualified Data.ByteString as B
+import Data.List
+import qualified Data.Text as T
+import Data.Text.Encoding
 import Data.Word
 import System.Random
 import Text.Printf
-import Data.List
-import Data.Text.Encoding
-import qualified Data.Text as T
 
 data Header = Header
 	{ headerCookie               :: Cookie
-	, headerDataOffset           :: Offset
-	, headerTableOffset          :: Offset
+	, headerDataOffset           :: PhysicalByteAddress
+	, headerTableOffset          :: PhysicalByteAddress
 	, headerVersion              :: Version
-	, headerMaxTableEntries      :: EntryCount
-	, headerBlockSize            :: BlockSize
+	, headerMaxTableEntries      :: VirtualBlockCount
+	, headerBlockSize            :: BlockByteCount
 	, headerChecksum             :: Checksum
 	, headerParentUniqueId       :: UniqueId
 	, headerParentTimeStamp      :: TimeStamp
@@ -29,13 +29,13 @@ data Footer = Footer
 	{ footerCookie             :: Cookie
 	, footerIsTemporaryDisk    :: Bool
 	, footerFormatVersion      :: Version
-	, footerDataOffset         :: Offset
+	, footerDataOffset         :: PhysicalByteAddress
 	, footerTimeStamp          :: TimeStamp
 	, footerCreatorApplication :: CreatorApplication
 	, footerCreatorVersion     :: Version
 	, footerCreatorHostOs      :: CreatorHostOs
-	, footerOriginalSize       :: Size
-	, footerCurrentSize        :: Size
+	, footerOriginalSize       :: VirtualByteCount
+	, footerCurrentSize        :: VirtualByteCount
 	, footerDiskGeometry       :: DiskGeometry
 	, footerDiskType           :: DiskType
 	, footerChecksum           :: Checksum
@@ -45,21 +45,31 @@ data Footer = Footer
 
 data BatmapHeader = BatmapHeader
 	{ batmapHeaderCookie       :: Cookie
-	, batmapHeaderOffset       :: Offset
+	, batmapHeaderOffset       :: PhysicalByteAddress
 	, batmapHeaderSize         :: Word32
 	, batmapHeaderVersion      :: Version
 	, batmapHeaderChecksum     :: Checksum
 	} deriving (Show, Eq)
 
-type BlockSize                   = Word32
+type BlockByteAddress            = Word32
+type BlockByteCount              = Word32
+type BlockSectorAddress          = Word32
+type BlockSectorCount            = Word32
 type DiskGeometryCylinders       = Word16
 type DiskGeometryHeads           = Word8
 type DiskGeometrySectorsPerTrack = Word8
 type Checksum                    = Word32
-type EntryCount                  = Word32
-type Offset                      = Word64
-type Size                        = Word64
+type PhysicalByteAddress         = Word64
+type PhysicalByteCount           = Word64
+type PhysicalSectorAddress       = Word32
+type PhysicalSectorCount         = Word32
 type TimeStamp                   = Word32
+type VirtualBlockAddress         = Word32
+type VirtualBlockCount           = Word32
+type VirtualByteAddress          = Word64
+type VirtualByteCount            = Word64
+type VirtualSectorAddress        = Word32
+type VirtualSectorCount          = Word32
 
 data Version      = Version VersionMajor VersionMinor deriving (Show, Eq)
 type VersionMajor = Word16

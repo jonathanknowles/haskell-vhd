@@ -1,4 +1,4 @@
-module Data.VHD.Bitmap
+module Data.Vhd.Bitmap
 	( Bitmap (..)
 	, bitmapGet
 	, bitmapSet
@@ -6,10 +6,10 @@ module Data.VHD.Bitmap
 	, bitmapClear
 	) where
 
+import Data.Bits
+import Data.Word
 import Foreign.Ptr
 import Foreign.Storable
-import Data.Word
-import Data.Bits
 
 data Bitmap = Bitmap (Ptr Word8)
 
