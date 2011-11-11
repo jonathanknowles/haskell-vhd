@@ -147,13 +147,13 @@ create filePath createParams
 
 create' :: FilePath -> CreateParameters -> IO ()
 create' filePath createParams =
+
 	withFile filePath WriteMode $ \handle -> do
 		B.hPut handle $ encode footer
 		B.hPut handle $ encode header
 		hAlign handle (fromIntegral sectorLength)
 		-- create a BAT with every entry initialized to 0xffffffff.
 		B.hPut handle $ B.replicate (fromIntegral batSize) 0xff
-
 		-- maybe create a batmap
 		when (createUseBatmap createParams) $ do
 			hAlign handle (fromIntegral sectorLength)
@@ -167,9 +167,9 @@ create' filePath createParams =
 				}
 			hAlign handle (fromIntegral sectorLength)
 			B.hPut handle $ B.replicate (fromIntegral (maxTableEntries `div` 8)) 0x0
-
 		hAlign handle (fromIntegral sectorLength)
 		B.hPut handle $ encode footer
+
 	where
 		virtualSize     = createVirtualSize createParams
 		maxTableEntries = fromIntegral (virtualSize `divRoundUp` fromIntegral (createBlockSize createParams))
@@ -195,6 +195,7 @@ create' filePath createParams =
 			, footerUniqueId           = fromJust $ createUuid createParams
 			, footerIsSavedState       = False
 			}
+
 		header = adjustHeaderChecksum $ Header
 			{ headerCookie               = cookie "cxsparse"
 			, headerDataOffset           = 0xffffffffffffffff
@@ -229,11 +230,11 @@ snapshot parentVhd childFilePath = do
 			headNodeFooter   = nodeFooter   headNode
 			parentFilePath   = makeRelative (takeDirectory childFilePath) (nodeFilePath headNode)
 
--- | Reads all raw data from the given VHD.
+-- | Reads data from the whole virtual address space of the given VHD.
 readData :: Vhd -> IO BL.ByteString
 readData vhd = readDataRange vhd 0 (vhdLength vhd)
 
--- | Reads raw data from within the given byte range of the given VHD.
+-- | Reads data from the given virtual address range of the given VHD.
 readDataRange :: Vhd -> VirtualByteAddress -> VirtualByteCount -> IO BL.ByteString
 readDataRange vhd offset length =
 	if offset + length > vhdLength vhd
@@ -249,7 +250,7 @@ readDataRange vhd offset length =
 				toTake = fromIntegral $ length
 				toDrop = fromIntegral $ offset `mod` blockSize
 
--- | Writes raw data to the given VHD.
+-- | Writes data to the given virtual address of the given VHD.
 writeDataRange :: Vhd -> VirtualByteAddress -> BL.ByteString -> IO ()
 writeDataRange vhd offset content = write (fromIntegral offset) content where
 
@@ -276,7 +277,7 @@ writeDataRange vhd offset content = write (fromIntegral offset) content where
 	offsetMax = vhdLength vhd
 	blockSize = fromIntegral $ vhdBlockSize vhd
 
--- | Reads raw data from within the given block of the given VHD.
+-- | Reads a block of data from the given virtual address of the given VHD.
 readDataBlock :: Vhd -> VirtualBlockAddress -> IO B.ByteString
 readDataBlock vhd blockNumber =
 	B.create
@@ -285,11 +286,11 @@ readDataBlock vhd blockNumber =
 	where
 		blockSize = vhdBlockSize vhd
 
+-- | Reads a block of data from the given virtual address of the given VHD.
 unsafeReadDataBlock :: Vhd -> VirtualBlockAddress -> Ptr Word8 -> IO ()
 unsafeReadDataBlock vhd blockNumber resultPtr = buildResult where
 
 	-- To do: modify this function so that it can read a sub-block.
-	-- To do: reduce the use of intermediate data structures.
 
 	buildResult :: IO ()
 	buildResult = do
