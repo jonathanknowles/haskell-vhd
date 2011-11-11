@@ -30,7 +30,7 @@ cmdConvert _ = error "usage: convert <raw file> <vhd file> <size MiB>"
 
 cmdCreate [name, size] =
 	create name $ defaultCreateParameters
-		{ createVirtualSize = (read size) * 1024 * 1024 }
+		{ createVirtualSize = read size * 1024 * 1024 }
 cmdCreate _ = error "usage: create <name> <size MiB>"
 
 cmdExtract [fileVhd, fileRaw] = withVhd fileVhd $ readData >=> BL.writeFile fileRaw
