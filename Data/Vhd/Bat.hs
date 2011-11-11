@@ -42,25 +42,34 @@ batmapChecksum :: Batmap -> IO Checksum
 batmapChecksum (Batmap (Bitmap p) sz) = complement `fmap` foldM addByte 0 [0 .. (sz - 1)]
 	where addByte acc i = (p `peekElemOff` i) >>= \w -> return (acc + fromIntegral w)
 
--- | returns the padded size of a BAT
+-- | Returns the padded size (in bytes) of the given BAT.
 batGetSize :: Header -> Footer -> Int
 batGetSize header footer = fromIntegral ((maxEntries * 4) `roundUpToModulo` sectorLength)
 	where
 		maxEntries = headerMaxTableEntries header
 
+-- | Returns true if (and only if) the given BAT contains an entry for the
+--   block at the given virtual address.
 containsBlock :: Bat -> VirtualBlockAddress -> IO Bool
 containsBlock = (fmap (/= emptyEntry) .) . unsafeLookupBlock
 
+-- | Returns the physical sector address for the block at the given virtual
+--   address, if (and only if) the given BAT contains an entry for that block.
 lookupBlock :: Bat -> VirtualBlockAddress -> IO (Maybe PhysicalSectorAddress)
 lookupBlock b n =
 	fmap
 		(\x -> if x == emptyEntry then Nothing else Just x)
 		(unsafeLookupBlock b n)
 
+-- | Returns the physical sector address for the block at the given virtual
+--   address. The value returned is valid if (and only if) the specified BAT
+--   contains an entry for that block.
 unsafeLookupBlock :: Bat -> VirtualBlockAddress -> IO PhysicalSectorAddress
 unsafeLookupBlock (Bat bptr _ _) n = peekBE ptr
 	where ptr = bptr `plusPtr` ((fromIntegral n) * 4)
 
+-- | Sets the physical sector address for the block at the given virtual
+--   address, in the specified BAT.
 batWrite :: Bat -> VirtualBlockAddress -> PhysicalSectorAddress -> IO ()
 batWrite (Bat bptr _ bmap) n v = pokeBE ptr v >> maybe (return ()) (batmapSet n) bmap
 	where ptr = bptr `plusPtr` ((fromIntegral n) * 4)
@@ -81,7 +90,7 @@ batMmap file header footer batmapHeader f =
 batIterate :: Bat -> VirtualBlockAddress -> (VirtualBlockAddress -> PhysicalSectorAddress -> IO ()) -> IO ()
 batIterate bat nb f = forM_ [0 .. (nb - 1)] (\i -> unsafeLookupBlock bat i >>= \n -> f i n)
 
--- | update checksum in the batmap if the batmap exists
+-- | Updates the checksum in the batmap, if the batmap exists.
 batUpdateChecksum :: Bat -> IO ()
 batUpdateChecksum (Bat _ _        Nothing)       = return ()
 batUpdateChecksum (Bat _ endptr   (Just batmap)) = do
