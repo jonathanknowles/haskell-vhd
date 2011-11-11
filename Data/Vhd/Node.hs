@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Data.Vhd.Node
 	( VhdNode (..)
 	, containsBlock
