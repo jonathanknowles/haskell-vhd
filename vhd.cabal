@@ -1,7 +1,7 @@
 Name:                vhd
 Version:             0.1
-Synopsis:            Provides functions to inspect and manipulate Virtual Hard Disk (VHD) files.
-Description:         Provides functions to inspect and manipulate Virtual Hard Disk (VHD) files, according to the VHD specification (version 1.0).
+Synopsis:            Provides functions to inspect and manipulate virtual hard disk (VHD) files.
+Description:         Provides functions to inspect and manipulate virtual hard disk (VHD) files, according to the VHD specification (version 1.0).
 Author:              Jonathan Knowles, Vincent Hanquez
 Maintainer:          jonathan.knowles@eu.citrix.com
 Copyright:           Citrix Systems Inc.
@@ -25,22 +25,25 @@ Flag executable
 Library
   Build-depends:     base >= 4 && < 5
                    , bytestring
+                   , filepath
                    , mmap
                    , text
                    , time
                    , cereal
                    , random
                    , storable-endian
-  Exposed-modules:   Data.VHD
-  Other-modules:     Data.VHD.Bat
-                     Data.VHD.Bitmap
-                     Data.VHD.Block
-                     Data.VHD.Checksum
-                     Data.VHD.Context
-                     Data.VHD.Geometry
-                     Data.VHD.Serialize
-                     Data.VHD.Types
-                     Data.VHD.Utils
+  Exposed-modules:   Data.Vhd
+  Other-modules:     Data.BitSet
+                     Data.Range
+                     Data.Vhd.Bat
+                     Data.Vhd.Bitmap
+                     Data.Vhd.Block
+                     Data.Vhd.Checksum
+                     Data.Vhd.Node
+                     Data.Vhd.Geometry
+                     Data.Vhd.Serialize
+                     Data.Vhd.Types
+                     Data.Vhd.Utils
 
 Executable           Tests
   Main-Is:           Tests.hs

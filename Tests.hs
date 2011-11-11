@@ -7,8 +7,8 @@ import Control.Monad
 
 import qualified Data.ByteString as B
 import Data.Serialize
-import Data.VHD.Types
-import Data.VHD.Serialize
+import Data.Vhd.Types
+import Data.Vhd.Serialize
 
 instance Arbitrary Version where
 	arbitrary = Version <$> arbitrary <*> arbitrary
