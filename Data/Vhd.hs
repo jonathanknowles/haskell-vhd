@@ -46,8 +46,8 @@ data Vhd = Vhd
 	, vhdNodes      :: [VhdNode]
 	}
 
-vhdLength :: Vhd -> VirtualByteCount
-vhdLength vhd = fromIntegral (vhdBlockCount vhd) * fromIntegral (vhdBlockSize vhd)
+virtualSize :: Vhd -> VirtualByteCount
+virtualSize vhd = fromIntegral (vhdBlockCount vhd) * fromIntegral (vhdBlockSize vhd)
 
 withVhd :: FilePath -> (Vhd -> IO a) -> IO a
 withVhd = withVhdInner [] where
@@ -222,7 +222,7 @@ snapshot parentVhd childFilePath = do
 		, createTimeStamp         = Nothing
 		, createUuid              = Nothing
 		, createUseBatmap         = hasBitmap headNodeBat
-		, createVirtualSize       = vhdLength parentVhd
+		, createVirtualSize       = virtualSize parentVhd
 		}
 		where
 			headNode         = head $ vhdNodes parentVhd
@@ -232,12 +232,12 @@ snapshot parentVhd childFilePath = do
 
 -- | Reads data from the whole virtual address space of the given VHD.
 readData :: Vhd -> IO BL.ByteString
-readData vhd = readDataRange vhd 0 (vhdLength vhd)
+readData vhd = readDataRange vhd 0 (virtualSize vhd)
 
 -- | Reads data from the given virtual address range of the given VHD.
 readDataRange :: Vhd -> VirtualByteAddress -> VirtualByteCount -> IO BL.ByteString
 readDataRange vhd offset length =
-	if offset + length > vhdLength vhd
+	if offset + length > virtualSize vhd
 		then error "cannot read data past end of VHD."
 		else fmap (trim . BL.fromChunks) (sequence blocks)
 	where
@@ -274,7 +274,7 @@ writeDataRange vhd offset content = write (fromIntegral offset) content where
 	bat       = nodeBat node
 	file      = nodeFilePath node
 	node      = head $ vhdNodes vhd
-	offsetMax = vhdLength vhd
+	offsetMax = virtualSize vhd
 	blockSize = fromIntegral $ vhdBlockSize vhd
 
 -- | Reads a block of data from the given virtual address of the given VHD.
