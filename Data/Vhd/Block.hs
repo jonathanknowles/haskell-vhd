@@ -33,29 +33,32 @@ data Data = Data (Ptr Word8)
 sectorLength :: Word32
 sectorLength = 512
 
+-- | Finds the padded size (in bytes) of the bitmap for a given block.
 bitmapSizeOfBlock :: Block -> Int
 bitmapSizeOfBlock (Block blockSize _) = bitmapSizeOfBlockSize blockSize
 
--- | this is the padded size of the bitmap for a specific blocksize
+-- | Finds the padded size (in bytes) of the bitmap for a given block size.
 bitmapSizeOfBlockSize :: BlockByteCount -> Int
 bitmapSizeOfBlockSize blockSize = fromIntegral ((nbSector `divRoundUp` 8) `roundUpToModulo` sectorLength)
 	where nbSector = blockSize `divRoundUp` sectorLength
 
--- | get a bitmap type out of a block type.
--- the bitmap happens to be at the beginning of the block.
+-- | Retrieves the bitmap for the given block.
 bitmapOfBlock :: Block -> Bitmap
 bitmapOfBlock (Block _ ptr) = Bitmap ptr
 
+-- | Finds the size (in bytes) of data stored within the block.
 blockSizeOfBlock :: Block -> BlockByteCount
 blockSizeOfBlock (Block bs _) = bs
 
+-- | Retrieves the data for the given block.
 dataOfBlock :: Block -> Data
 dataOfBlock (Block bs ptr) = Data $ ptr `plusPtr` (bitmapSizeOfBlockSize bs)
 
+-- | Obtains a direct pointer to the given data.
 pointerOfData :: Data -> Ptr Word8
 pointerOfData (Data ptr) = ptr
 
--- | mmap a block using a filepath, a blocksize
+-- | Maps into memory a block of the given size, at the given file path and sector address.
 withBlock :: FilePath -> BlockByteCount -> PhysicalSectorAddress -> (Block -> IO a) -> IO a
 withBlock file blockSize sectorOffset f =
 		mmapWithFilePtr file ReadWrite (Just (offset, length)) $ \(ptr, sz) ->
@@ -64,6 +67,7 @@ withBlock file blockSize sectorOffset f =
 		offset = (fromIntegral sectorOffset) * (fromIntegral sectorLength)
 		length = (fromIntegral blockSize) + (fromIntegral $ bitmapSizeOfBlockSize blockSize)
 
+-- | Reads into memory the contents of the bitmap for the specified block.
 readBitmap :: Block -> IO ByteString
 readBitmap block =
 	B.create (fromIntegral length) create where
@@ -72,24 +76,29 @@ readBitmap block =
 			source = case bitmapOfBlock block of Bitmap b -> b
 			target = castPtr byteStringPtr
 
+-- | Reads all available data from the specified block.
 readData :: Block -> IO ByteString
 readData block =
 	readDataRange block 0 (fromIntegral $ blockSizeOfBlock block)
 
+-- | Reads a range of data from within the specified block.
 readDataRange :: Block -> BlockByteAddress -> BlockByteCount -> IO ByteString
 readDataRange block offset length =
 	B.create (fromIntegral length) (unsafeReadDataRange block offset length)
 
+-- | Unsafely reads all available data from the specified block.
 unsafeReadData :: Block -> Ptr Word8 -> IO ()
 unsafeReadData block =
 	unsafeReadDataRange block 0 (fromIntegral $ blockSizeOfBlock block)
 
+-- | Unsafely reads a range of data from within the specified block.
 unsafeReadDataRange :: Block -> BlockByteAddress -> BlockByteCount -> Ptr Word8 -> IO ()
 unsafeReadDataRange block offset length target =
 	B.memcpy target source (fromIntegral length)
 	where
 		source = (pointerOfData $ dataOfBlock block) `plusPtr` (fromIntegral offset)
 
+-- | Writes data to the given byte address of the specified block.
 writeDataRange :: Block -> BlockByteAddress -> ByteString -> IO ()
 writeDataRange block offset content = do
 	-- sectors need to be prepared for differential disk if the bitmap was clear before,
