@@ -316,13 +316,14 @@ unsafeReadDataBlock vhd blockNumber resultPtr = buildResult where
 	copySectorsFromNode :: BitSet -> (VhdNode, PhysicalSectorAddress) -> IO BitSet
 	copySectorsFromNode sectorsRequested (node, sectorOffset) =
 		withBlock (nodeFilePath node) blockSize sectorOffset $ \block -> do
-			deltaBitmap <- Block.readBitmap block
-			let sectorsPresent = fromByteString deltaBitmap
-			let sectorsMissing = sectorsRequested `subtract` sectorsPresent
-			let sectorsToCopy = sectorsRequested `intersect` sectorsPresent
+			sectorsPresentByteString <- Block.readBitmap block
+			let sectorsPresent = fromByteString sectorsPresentByteString
+			let sectorsMissing = sectorsRequested `subtract`  sectorsPresent
+			let sectorsToCopy  = sectorsRequested `intersect` sectorsPresent
 			mapM_
 				(\offset -> unsafeReadDataRange block offset
-					(fromIntegral sectorLength) (resultPtr `plusPtr` (fromIntegral offset)))
+					(fromIntegral sectorLength)
+					(resultPtr `plusPtr` (fromIntegral offset)))
 				(map (byteOffsetOfSector . fromIntegral) $ toList sectorsToCopy)
 			return sectorsMissing
 
