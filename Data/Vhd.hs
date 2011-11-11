@@ -46,7 +46,7 @@ data Vhd = Vhd
 	, vhdNodes      :: [VhdNode]
 	}
 
-vhdLength :: Vhd -> Word64
+vhdLength :: Vhd -> VirtualByteCount
 vhdLength vhd = fromIntegral (vhdBlockCount vhd) * fromIntegral (vhdBlockSize vhd)
 
 withVhd :: FilePath -> (Vhd -> IO a) -> IO a
