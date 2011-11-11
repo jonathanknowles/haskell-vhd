@@ -1,7 +1,7 @@
 Name:                vhd
 Version:             0.1
-Synopsis:            Provides functions to inspect and manipulate Virtual Hard Disk (VHD) files.
-Description:         Provides functions to inspect and manipulate Virtual Hard Disk (VHD) files, according to the VHD specification (version 1.0).
+Synopsis:            Provides functions to inspect and manipulate virtual hard disk (VHD) files.
+Description:         Provides functions to inspect and manipulate virtual hard disk (VHD) files, according to the VHD specification (version 1.0).
 Author:              Jonathan Knowles, Vincent Hanquez
 Maintainer:          jonathan.knowles@eu.citrix.com
 Copyright:           Citrix Systems Inc.
