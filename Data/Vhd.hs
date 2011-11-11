@@ -80,9 +80,9 @@ withVhd = withVhdInner [] where
 --     c. for all bytestrings b:   (length of b) ≤ (maxBound :: Int).
 --     d. for some systems: (maxBound :: Word32) > (maxBound :: Int).
 --
--- This opens the possibility of subtle bugs on attempting to open a VHD
--- with (block size) > (maxBound :: Int). Therefore, this function fails
--- fast on attempting to open such a VHD file.
+-- This opens the (very remote) possibility of subtle bugs on attempting
+-- to open a VHD with (block size) > (maxBound :: Int).  Therefore, this
+-- function fails fast on attempting to open such a VHD file.
 --
 validateBlockSize :: BlockByteCount -> BlockByteCount
 validateBlockSize value =
