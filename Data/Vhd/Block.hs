@@ -30,7 +30,6 @@ data Block = Block BlockByteCount (Ptr Word8)
 data Sector = Sector (Ptr Word8)
 data Data = Data (Ptr Word8)
 
-sectorLength :: Word32
 sectorLength = 512
 
 -- | Finds the padded size (in bytes) of the bitmap for a given block.
