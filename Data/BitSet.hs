@@ -91,6 +91,15 @@ byteStringsPad b1 b2 =
 		length1 = B.length b1
 		length2 = B.length b2
 
+byteStringsContract :: B.ByteString -> B.ByteString -> (B.ByteString, B.ByteString)
+byteStringsContract b1 b2 =
+	if length1 < length2
+		then (b1, B.take length1 b2)
+		else (B.take length2 b1, b2)
+	where
+		length1 = B.length b1
+		length2 = B.length b2
+
 setBits :: Bits a => a -> Int -> Int -> a
 setBits value loBit hiBit = if loBit < hiBit
 	then setBits (setBit value loBit) (loBit + 1) hiBit
