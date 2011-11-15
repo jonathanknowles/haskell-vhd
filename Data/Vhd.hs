@@ -237,6 +237,7 @@ readData vhd = readDataRange vhd 0 (virtualSize vhd)
 -- | Reads data from the given virtual address range of the given VHD.
 readDataRange :: Vhd -> VirtualByteAddress -> VirtualByteCount -> IO BL.ByteString
 readDataRange vhd offset length =
+	-- To do: modify this function to read sub-blocks where appropriate.
 	if offset + length > virtualSize vhd
 		then error "cannot read data past end of VHD."
 		else fmap (trim . BL.fromChunks) (sequence blocks)
@@ -277,55 +278,61 @@ writeDataRange vhd offset content = write (fromIntegral offset) content where
 	offsetMax = virtualSize vhd
 	blockSize = fromIntegral $ vhdBlockSize vhd
 
--- | Reads a block of data from the given virtual address of the given VHD.
+-- | Reads all available data from the given virtual block of the given VHD.
 readDataBlock :: Vhd -> VirtualBlockAddress -> IO B.ByteString
-readDataBlock vhd blockNumber =
+readDataBlock vhd virtualBlockAddress =
+	readDataBlockRange vhd virtualBlockAddress 0 ((vhdBlockSize vhd) `div` sectorLength)
+
+-- | Reads data from the given sector range of the given virtual block of the given VHD.
+readDataBlockRange :: Vhd -> VirtualBlockAddress -> BlockSectorAddress -> BlockSectorCount -> IO B.ByteString
+readDataBlockRange vhd virtualBlockAddress sectorOffset sectorCount =
 	B.create
-		(fromIntegral $ blockSize)
-		(unsafeReadDataBlock vhd blockNumber)
-	where
-		blockSize = vhdBlockSize vhd
+		(fromIntegral $ sectorCount * sectorLength)
+		(unsafeReadDataBlockRange vhd virtualBlockAddress sectorOffset sectorCount)
 
--- | Reads a block of data from the given virtual address of the given VHD.
-unsafeReadDataBlock :: Vhd -> VirtualBlockAddress -> Ptr Word8 -> IO ()
-unsafeReadDataBlock vhd blockNumber resultPtr = buildResult where
-
-	-- To do: modify this function so that it can read a sub-block.
+-- | Unsafely reads data from the given sector range of the given virtual block of the given VHD.
+unsafeReadDataBlockRange :: Vhd -> VirtualBlockAddress -> BlockSectorAddress -> BlockSectorCount -> Ptr Word8 -> IO ()
+unsafeReadDataBlockRange vhd virtualBlockAddress sectorOffset sectorCount resultPtr = buildResult where
 
 	buildResult :: IO ()
 	buildResult = do
-		B.memset resultPtr 0 (fromIntegral blockSize)
+		B.memset resultPtr 0 $ fromIntegral $ sectorCount * sectorLength
 		copySectorsFromNodes sectorsToRead =<< nodeOffsets
 
-	blockSize = vhdBlockSize vhd
-
-	sectorsToRead = fromRange 0 $ fromIntegral $ blockSize `div` sectorLength
+	sectorsToRead = fromRange lo hi where
+		lo = fromIntegral $ sectorOffset
+		hi = fromIntegral $ sectorOffset + sectorCount
 
 	nodeOffsets :: IO [(VhdNode, PhysicalSectorAddress)]
 	nodeOffsets = fmap catMaybes $ mapM maybeNodeOffset $ vhdNodes vhd where
 		maybeNodeOffset node = (fmap . fmap) (node, ) $
-			lookupBlock (nodeBat node) blockNumber
+			lookupBlock (nodeBat node) virtualBlockAddress
 
 	copySectorsFromNodes :: BitSet -> [(VhdNode, PhysicalSectorAddress)] -> IO ()
-	copySectorsFromNodes sectorsToCopy [] = return ()
-	copySectorsFromNodes sectorsToCopy (nodeOffset : tail) =
-		if Data.BitSet.isEmpty sectorsToCopy then return () else do
-		sectorsMissing <- copySectorsFromNode sectorsToCopy nodeOffset
+	copySectorsFromNodes sectorsRequested [] = return ()
+	copySectorsFromNodes sectorsRequested (nodeOffset : tail) =
+		if Data.BitSet.isEmpty sectorsRequested then return () else do
+		sectorsMissing <- copySectorsFromNode sectorsRequested nodeOffset
 		copySectorsFromNodes sectorsMissing tail
 
 	copySectorsFromNode :: BitSet -> (VhdNode, PhysicalSectorAddress) -> IO BitSet
-	copySectorsFromNode sectorsRequested (node, sectorOffset) =
-		withBlock (nodeFilePath node) blockSize sectorOffset $ \block -> do
-			sectorsPresentByteString <- Block.readBitmap block
-			let sectorsPresent = fromByteString sectorsPresentByteString
-			let sectorsMissing = sectorsRequested `subtract`  sectorsPresent
-			let sectorsToCopy  = sectorsRequested `intersect` sectorsPresent
-			mapM_
-				(\offset -> unsafeReadDataRange block offset
-					(fromIntegral sectorLength)
-					(resultPtr `plusPtr` (fromIntegral offset)))
-				(map (byteOffsetOfSector . fromIntegral) $ toList sectorsToCopy)
-			return sectorsMissing
+	copySectorsFromNode sectorsRequested (node, physicalSectorOfBlock) =
+		withBlock (nodeFilePath node) (vhdBlockSize vhd)
+			physicalSectorOfBlock $ copySectorsFromNodeBlock sectorsRequested
 
-	byteOffsetOfSector :: BlockSectorAddress -> BlockByteAddress
-	byteOffsetOfSector = (*) $ fromIntegral sectorLength
+	copySectorsFromNodeBlock :: BitSet -> Block -> IO BitSet
+	copySectorsFromNodeBlock sectorsRequested block = do
+		sectorsPresentByteString <- Block.readBitmap block
+		let sectorsPresent = fromByteString sectorsPresentByteString
+		let sectorsMissing = sectorsRequested `subtract`  sectorsPresent
+		let sectorsToCopy  = sectorsRequested `intersect` sectorsPresent
+		mapM_ (copySectorFromNodeBlock block) (map fromIntegral $ toList sectorsToCopy)
+		return sectorsMissing
+
+	copySectorFromNodeBlock :: Block -> BlockSectorAddress -> IO ()
+	copySectorFromNodeBlock block sectorToCopy =
+		unsafeReadDataRange block sourceByteOffset sectorLength target where
+			sourceByteOffset = sectorLength * (sectorToCopy               )
+			targetByteOffset = sectorLength * (sectorToCopy - sectorOffset)
+			target = plusPtr resultPtr $ fromIntegral $ targetByteOffset
+
